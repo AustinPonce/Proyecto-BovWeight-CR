@@ -3,7 +3,13 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Observers\CrearNotificacionObserver;
+use App\Observers\VerificarPesoObserver;
+use App\Observers\AuditoriaPesajeObserver;
+use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 
+// Usamos el atributo nativo de Laravel para asignarle los 3 observadores GoF
+#[ObservedBy([CrearNotificacionObserver::class, VerificarPesoObserver::class, AuditoriaPesajeObserver::class])]
 class Pesaje extends Model
 {
     protected $table = 'Pesaje';
