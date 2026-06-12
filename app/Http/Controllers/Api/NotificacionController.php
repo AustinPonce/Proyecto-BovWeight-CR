@@ -21,21 +21,21 @@ class NotificacionController extends Controller
         $aretesVisibles = Animal::visibleFor($request->user())->pluck('arete');
 
         $notificaciones = Notificacion::with([
-                'recordatorio.animal:arete,nombre',
-            ])
+            'recordatorio.animal:arete,nombre',
+        ])
             ->whereHas('recordatorio', fn ($q) => $q->whereIn('arete', $aretesVisibles))
             ->orderByDesc('fecha_envio')
             ->get();
 
         $data = $notificaciones->map(fn ($n) => [
             'id_notificacion' => $n->id_notificacion,
-            'mensaje'         => $n->mensaje,
-            'fecha_envio'     => $n->fecha_envio?->toISOString(),
+            'mensaje' => $n->mensaje,
+            'fecha_envio' => $n->fecha_envio?->toISOString(),
             'id_recordatorio' => $n->id_recordatorio,
-            'recordatorio'    => $n->recordatorio ? [
-                'arete'      => $n->recordatorio->arete,
+            'recordatorio' => $n->recordatorio ? [
+                'arete' => $n->recordatorio->arete,
                 'frecuencia' => $n->recordatorio->frecuencia,
-                'animal'     => $n->recordatorio->animal
+                'animal' => $n->recordatorio->animal
                     ? ['nombre' => $n->recordatorio->animal->nombre]
                     : null,
             ] : null,

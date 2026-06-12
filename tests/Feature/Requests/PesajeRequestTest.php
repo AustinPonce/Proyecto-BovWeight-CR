@@ -37,10 +37,10 @@ class PesajeRequestTest extends TestCase
     private function createTestUser(int $rolId, string $cedula): Usuario
     {
         return Usuario::create([
-            'cedula'          => $cedula,
-            'nombre'          => 'Usuario Test ' . $cedula,
-            'correo'          => 'test_' . $cedula . '@bovweight.cr',
-            'contrasena'      => 'bovweight2026',
+            'cedula' => $cedula,
+            'nombre' => 'Usuario Test '.$cedula,
+            'correo' => 'test_'.$cedula.'@bovweight.cr',
+            'contrasena' => 'bovweight2026',
             'id_tipo_usuario' => $rolId,
         ]);
     }
@@ -51,18 +51,18 @@ class PesajeRequestTest extends TestCase
     private function createTestAnimal(Usuario $owner, string $arete = 'AR-TEST-01'): Animal
     {
         $finca = Finca::create([
-            'nombre'    => 'Finca de Prueba',
+            'nombre' => 'Finca de Prueba',
             'ubicacion' => 'San Carlos',
-            'cedula'    => $owner->cedula,
+            'cedula' => $owner->cedula,
         ]);
 
         return Animal::create([
-            'arete'     => $arete,
-            'nombre'    => 'Bovino Test',
-            'id_raza'   => 1,
-            'id_sexo'   => 1,
+            'arete' => $arete,
+            'nombre' => 'Bovino Test',
+            'id_raza' => 1,
+            'id_sexo' => 1,
             'id_estado' => 1,
-            'id_finca'  => $finca->id_finca,
+            'id_finca' => $finca->id_finca,
         ]);
     }
 
@@ -79,10 +79,10 @@ class PesajeRequestTest extends TestCase
         $animal = $this->createTestAnimal($admin, 'AR-ADMIN');
 
         $data = [
-            'arete'              => $animal->arete,
-            'tipo'               => 'manual',
-            'largo_cuerpo'       => 150,
-            'altura'             => 120,
+            'arete' => $animal->arete,
+            'tipo' => 'manual',
+            'largo_cuerpo' => 150,
+            'altura' => 120,
             'perimetro_toracico' => 160,
         ];
 
@@ -102,10 +102,10 @@ class PesajeRequestTest extends TestCase
         $animal = $this->createTestAnimal($ganadero, 'AR-GANADERO');
 
         $data = [
-            'arete'              => $animal->arete,
-            'tipo'               => 'manual',
-            'largo_cuerpo'       => 140,
-            'altura'             => 110,
+            'arete' => $animal->arete,
+            'tipo' => 'manual',
+            'largo_cuerpo' => 140,
+            'altura' => 110,
             'perimetro_toracico' => 150,
         ];
 
@@ -126,10 +126,10 @@ class PesajeRequestTest extends TestCase
         $animal = $this->createTestAnimal($ganadero, 'AR-VET');
 
         $data = [
-            'arete'              => $animal->arete,
-            'tipo'               => 'manual',
-            'largo_cuerpo'       => 140,
-            'altura'             => 110,
+            'arete' => $animal->arete,
+            'tipo' => 'manual',
+            'largo_cuerpo' => 140,
+            'altura' => 110,
             'perimetro_toracico' => 150,
         ];
 
@@ -146,10 +146,10 @@ class PesajeRequestTest extends TestCase
     public function test_invitado_no_autorizado_para_crear_pesaje(): void
     {
         $data = [
-            'arete'              => 'AR-INVITADO',
-            'tipo'               => 'manual',
-            'largo_cuerpo'       => 140,
-            'altura'             => 110,
+            'arete' => 'AR-INVITADO',
+            'tipo' => 'manual',
+            'largo_cuerpo' => 140,
+            'altura' => 110,
             'perimetro_toracico' => 150,
         ];
 
@@ -170,10 +170,10 @@ class PesajeRequestTest extends TestCase
         $admin = $this->createTestUser(Usuario::ROL_ADMIN, '100000001');
 
         $data = [
-            'arete'              => '', // vacío
-            'tipo'               => 'manual',
-            'largo_cuerpo'       => 150,
-            'altura'             => 120,
+            'arete' => '', // vacío
+            'tipo' => 'manual',
+            'largo_cuerpo' => 150,
+            'altura' => 120,
             'perimetro_toracico' => 160,
         ];
 
@@ -192,10 +192,10 @@ class PesajeRequestTest extends TestCase
         $admin = $this->createTestUser(Usuario::ROL_ADMIN, '100000001');
 
         $data = [
-            'arete'              => 'AR-INEXISTENTE', // No registrado
-            'tipo'               => 'manual',
-            'largo_cuerpo'       => 150,
-            'altura'             => 120,
+            'arete' => 'AR-INEXISTENTE', // No registrado
+            'tipo' => 'manual',
+            'largo_cuerpo' => 150,
+            'altura' => 120,
             'perimetro_toracico' => 160,
         ];
 
@@ -215,10 +215,10 @@ class PesajeRequestTest extends TestCase
         $animal = $this->createTestAnimal($admin);
 
         $data = [
-            'arete'              => $animal->arete,
-            'tipo'               => '', // vacío
-            'largo_cuerpo'       => 150,
-            'altura'             => 120,
+            'arete' => $animal->arete,
+            'tipo' => '', // vacío
+            'largo_cuerpo' => 150,
+            'altura' => 120,
             'perimetro_toracico' => 160,
         ];
 
@@ -238,10 +238,10 @@ class PesajeRequestTest extends TestCase
         $animal = $this->createTestAnimal($admin);
 
         $data = [
-            'arete'              => $animal->arete,
-            'tipo'               => 'invalido', // no es ni manual ni foto
-            'largo_cuerpo'       => 150,
-            'altura'             => 120,
+            'arete' => $animal->arete,
+            'tipo' => 'invalido', // no es ni manual ni foto
+            'largo_cuerpo' => 150,
+            'altura' => 120,
             'perimetro_toracico' => 160,
         ];
 
@@ -265,10 +265,10 @@ class PesajeRequestTest extends TestCase
         $animal = $this->createTestAnimal($admin);
 
         $data = [
-            'arete'              => $animal->arete,
-            'tipo'               => 'manual',
-            'largo_cuerpo'       => null, // requerido
-            'altura'             => null, // requerido
+            'arete' => $animal->arete,
+            'tipo' => 'manual',
+            'largo_cuerpo' => null, // requerido
+            'altura' => null, // requerido
             'perimetro_toracico' => null, // requerido
         ];
 
@@ -292,8 +292,8 @@ class PesajeRequestTest extends TestCase
         $animal = $this->createTestAnimal($admin);
 
         $data = [
-            'arete'  => $animal->arete,
-            'tipo'   => 'foto',
+            'arete' => $animal->arete,
+            'tipo' => 'foto',
             'imagen' => null, // requerido para tipo foto
         ];
 
@@ -317,8 +317,8 @@ class PesajeRequestTest extends TestCase
 
         $response = $this->actingAs($admin, 'sanctum')
             ->postJson('/api/pesajes', [
-                'arete'  => $animal->arete,
-                'tipo'   => 'foto',
+                'arete' => $animal->arete,
+                'tipo' => 'foto',
                 'imagen' => $archivoInvalido,
             ]);
 
@@ -338,8 +338,8 @@ class PesajeRequestTest extends TestCase
         $pngImage = UploadedFile::fake()->image('bovino.png');
         $response = $this->actingAs($admin, 'sanctum')
             ->postJson('/api/pesajes', [
-                'arete'  => $animal->arete,
-                'tipo'   => 'foto',
+                'arete' => $animal->arete,
+                'tipo' => 'foto',
                 'imagen' => $pngImage,
             ]);
         $response->assertStatus(201); // Debería guardarse correctamente
@@ -348,8 +348,8 @@ class PesajeRequestTest extends TestCase
         $pdfFile = UploadedFile::fake()->create('bovino.pdf', 100);
         $response = $this->actingAs($admin, 'sanctum')
             ->postJson('/api/pesajes', [
-                'arete'  => $animal->arete,
-                'tipo'   => 'foto',
+                'arete' => $animal->arete,
+                'tipo' => 'foto',
                 'imagen' => $pdfFile,
             ]);
         $response->assertStatus(422);
@@ -369,8 +369,8 @@ class PesajeRequestTest extends TestCase
 
         $response = $this->actingAs($admin, 'sanctum')
             ->postJson('/api/pesajes', [
-                'arete'  => $animal->arete,
-                'tipo'   => 'foto',
+                'arete' => $animal->arete,
+                'tipo' => 'foto',
                 'imagen' => $largeImage,
             ]);
 

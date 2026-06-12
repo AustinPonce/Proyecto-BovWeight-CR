@@ -27,7 +27,7 @@ class VerificarPesoObserver
         }
 
         Log::warning("Condición corporal baja detectada en animal: {$pesaje->arete} "
-            . "(peso registrado: {$pesaje->peso} kg)");
+            ."(peso registrado: {$pesaje->peso} kg)");
 
         $idRecordatorio = DB::table('Recordatorio')
             ->where('arete', $pesaje->arete)
@@ -39,9 +39,9 @@ class VerificarPesoObserver
         }
 
         DB::table('Notificacion')->insert([
-            'mensaje'         => "ALERTA SANITARIA: El animal {$pesaje->arete} registra "
-                                . "un peso crítico de {$pesaje->peso} kg.",
-            'fecha_envio'     => Carbon::now(),
+            'mensaje' => "ALERTA SANITARIA: El animal {$pesaje->arete} registra "
+                                ."un peso crítico de {$pesaje->peso} kg.",
+            'fecha_envio' => Carbon::now(),
             'id_recordatorio' => $idRecordatorio,
         ]);
     }

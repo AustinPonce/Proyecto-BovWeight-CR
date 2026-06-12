@@ -32,10 +32,10 @@ class DosisController extends Controller
         $usuario = $request->user();
 
         $datos = $request->validate([
-            'arete'           => ['required', 'string', 'exists:Animal,arete'],
-            'id_medicamento'  => ['required', 'integer', 'exists:Medicamento,id_medicamento'],
+            'arete' => ['required', 'string', 'exists:Animal,arete'],
+            'id_medicamento' => ['required', 'integer', 'exists:Medicamento,id_medicamento'],
             'peso_referencia' => ['nullable', 'numeric', 'min:10', 'max:3000'],
-            'comentario'      => ['nullable', 'string', 'max:1000'],
+            'comentario' => ['nullable', 'string', 'max:1000'],
         ]);
 
         $animal = Animal::with(['pesajes' => fn ($q) => $q->orderByDesc('fecha')])->find($datos['arete']);
@@ -55,21 +55,21 @@ class DosisController extends Controller
 
         if ($usuario->esVeterinario() && filled($datos['comentario'] ?? null)) {
             ComentarioVeterinario::create([
-                'arete'              => $animal->arete,
+                'arete' => $animal->arete,
                 'cedula_veterinario' => $usuario->cedula,
-                'comentario'         => "[Dosis {$medicamento->nombre}: {$dosisTotal} {$medicamento->unidad}]\n{$datos['comentario']}",
-                'fecha'              => Carbon::now(),
+                'comentario' => "[Dosis {$medicamento->nombre}: {$dosisTotal} {$medicamento->unidad}]\n{$datos['comentario']}",
+                'fecha' => Carbon::now(),
             ]);
         }
 
         return response()->json([
             'data' => [
-                'animal'      => ['arete' => $animal->arete, 'nombre' => $animal->nombre],
+                'animal' => ['arete' => $animal->arete, 'nombre' => $animal->nombre],
                 'medicamento' => ['nombre' => $medicamento->nombre, 'unidad' => $medicamento->unidad],
-                'peso_kg'     => $peso,
+                'peso_kg' => $peso,
                 'dosis_total' => $dosisTotal,
-                'unidad'      => $medicamento->unidad,
-                'formula'     => "{$medicamento->dosis_por_kg} {$medicamento->unidad}/kg × {$peso} kg = {$dosisTotal} {$medicamento->unidad}",
+                'unidad' => $medicamento->unidad,
+                'formula' => "{$medicamento->dosis_por_kg} {$medicamento->unidad}/kg × {$peso} kg = {$dosisTotal} {$medicamento->unidad}",
             ],
         ]);
     }

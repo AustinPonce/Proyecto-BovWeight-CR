@@ -33,13 +33,13 @@ class RecordatorioController extends Controller
         $this->autorizarAcceso($request->user(), $animal);
 
         $datos = $request->validate([
-            'frecuencia'   => ['required', 'in:semanal,quincenal,mensual,trimestral'],
+            'frecuencia' => ['required', 'in:semanal,quincenal,mensual,trimestral'],
             'fecha_inicio' => ['required', 'date', 'date_format:Y-m-d'],
         ]);
 
         $recordatorio = Recordatorio::create([
-            'arete'        => $animal->arete,
-            'frecuencia'   => $datos['frecuencia'],
+            'arete' => $animal->arete,
+            'frecuencia' => $datos['frecuencia'],
             'fecha_inicio' => $datos['fecha_inicio'],
         ]);
 
@@ -61,9 +61,13 @@ class RecordatorioController extends Controller
 
     private function autorizarAcceso($usuario, Animal $animal): void
     {
-        if ($usuario->esAdmin()) return;
+        if ($usuario->esAdmin()) {
+            return;
+        }
 
-        if ($usuario->esGanadero() && $animal->finca->cedula === $usuario->cedula) return;
+        if ($usuario->esGanadero() && $animal->finca->cedula === $usuario->cedula) {
+            return;
+        }
 
         if ($usuario->esVeterinario()
             && $animal->finca->veterinarios()->where('Veterinario_Finca.cedula', $usuario->cedula)->exists()) {

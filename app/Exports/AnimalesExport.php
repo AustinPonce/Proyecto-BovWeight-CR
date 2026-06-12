@@ -3,21 +3,16 @@
 namespace App\Exports;
 
 use Maatwebsite\Excel\Concerns\FromCollection;
+use Maatwebsite\Excel\Concerns\ShouldAutoSize;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
 use Maatwebsite\Excel\Concerns\WithStyles;
-use Maatwebsite\Excel\Concerns\ShouldAutoSize;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
 /**
  * RF25 — Exportación de animales a Excel (.xlsx).
  */
-class AnimalesExport implements
-    FromCollection,
-    WithHeadings,
-    WithMapping,
-    ShouldAutoSize,
-    WithStyles
+class AnimalesExport implements FromCollection, ShouldAutoSize, WithHeadings, WithMapping, WithStyles
 {
     public function __construct(
         protected $animales
@@ -62,8 +57,8 @@ class AnimalesExport implements
     {
         return [
             1 => [
-                'font'      => ['bold' => true, 'color' => ['argb' => 'FFFFFFFF']],
-                'fill'      => ['fillType' => 'solid', 'startColor' => ['argb' => 'FF065F46']],
+                'font' => ['bold' => true, 'color' => ['argb' => 'FFFFFFFF']],
+                'fill' => ['fillType' => 'solid', 'startColor' => ['argb' => 'FF065F46']],
             ],
         ];
     }

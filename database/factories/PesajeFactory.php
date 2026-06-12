@@ -31,12 +31,12 @@ class PesajeFactory extends Factory
     public function definition(): array
     {
         return [
-            'fecha'           => fake()->dateTimeBetween('-1 year', 'now'),
-            'peso'            => fake()->randomFloat(2, 80, 750),
-            'imagen'          => 'pesajes/' . fake()->uuid() . '.jpg',
-            'sincronizado'    => 1,
-            'arete'           => Animal::factory(),
-            'id_tipo_pesaje'  => TipoPesaje::query()->where('tipo_pesaje', 'Estimación por Fotografía')->value('id_tipo_pesaje')
+            'fecha' => fake()->dateTimeBetween('-1 year', 'now'),
+            'peso' => fake()->randomFloat(2, 80, 750),
+            'imagen' => 'pesajes/'.fake()->uuid().'.jpg',
+            'sincronizado' => 1,
+            'arete' => Animal::factory(),
+            'id_tipo_pesaje' => TipoPesaje::query()->where('tipo_pesaje', 'Estimación por Fotografía')->value('id_tipo_pesaje')
                 ?? TipoPesaje::factory()->porFoto(),
         ];
     }
@@ -54,7 +54,7 @@ class PesajeFactory extends Factory
     public function manual(): static
     {
         return $this->state([
-            'imagen'         => null,
+            'imagen' => null,
             'id_tipo_pesaje' => TipoPesaje::query()->where('tipo_pesaje', 'Pesaje Manual con Báscula')->value('id_tipo_pesaje')
                 ?? TipoPesaje::factory()->manual(),
         ]);

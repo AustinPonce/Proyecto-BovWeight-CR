@@ -20,7 +20,7 @@ class VeterinarioFincaController extends Controller
         $vets = Usuario::where('id_tipo_usuario', Usuario::ROL_VETERINARIO)
             ->where(function ($q) use ($term) {
                 $q->where('nombre', 'like', "%{$term}%")
-                  ->orWhere('cedula', 'like', "%{$term}%");
+                    ->orWhere('cedula', 'like', "%{$term}%");
             })
             ->limit(10)
             ->get(['cedula', 'nombre', 'correo']);
@@ -48,8 +48,8 @@ class VeterinarioFincaController extends Controller
 
         // RF21 — Auditoría.
         AuditoriaService::registrar(
-            accion:      Auditoria::ACCION_ASIGNAR,
-            modulo:      Auditoria::MODULO_VETERINARIOS,
+            accion: Auditoria::ACCION_ASIGNAR,
+            modulo: Auditoria::MODULO_VETERINARIOS,
             descripcion: "Veterinario '{$vet->nombre}' (cédula: {$vet->cedula}) asignado a finca '{$finca->nombre}'.",
             datosDespues: ['finca_id' => $finca->id_finca, 'cedula_veterinario' => $vet->cedula],
         );
@@ -68,10 +68,10 @@ class VeterinarioFincaController extends Controller
 
         // RF21 — Auditoría.
         AuditoriaService::registrar(
-            accion:      Auditoria::ACCION_DESASIGNAR,
-            modulo:      Auditoria::MODULO_VETERINARIOS,
+            accion: Auditoria::ACCION_DESASIGNAR,
+            modulo: Auditoria::MODULO_VETERINARIOS,
             descripcion: "Veterinario cédula '{$cedula}' desasignado de finca '{$finca->nombre}'.",
-            datosAntes:  ['finca_id' => $finca->id_finca, 'cedula_veterinario' => $cedula],
+            datosAntes: ['finca_id' => $finca->id_finca, 'cedula_veterinario' => $cedula],
         );
 
         return redirect()
@@ -82,8 +82,12 @@ class VeterinarioFincaController extends Controller
     private function autorizarEdicion(Finca $finca): void
     {
         $u = auth()->user();
-        if ($u->esAdmin()) return;
-        if ($u->esGanadero() && $finca->cedula === $u->cedula) return;
+        if ($u->esAdmin()) {
+            return;
+        }
+        if ($u->esGanadero() && $finca->cedula === $u->cedula) {
+            return;
+        }
         abort(403, 'No tenés permiso para gestionar veterinarios de esta finca.');
     }
 }

@@ -26,19 +26,19 @@ return new class extends Migration
     {
         Schema::table('Pesaje', function (Blueprint $table) {
             $table->decimal('peso_original', 8, 2)
-                  ->nullable()
-                  ->after('peso')
-                  ->comment('Peso estimado antes de aplicar factor de raza.');
+                ->nullable()
+                ->after('peso')
+                ->comment('Peso estimado antes de aplicar factor de raza.');
 
             $table->decimal('factor_raza', 5, 4)
-                  ->nullable()
-                  ->after('peso_original')
-                  ->comment('Snapshot del factor de corrección de la raza al momento del pesaje.');
+                ->nullable()
+                ->after('peso_original')
+                ->comment('Snapshot del factor de corrección de la raza al momento del pesaje.');
 
             $table->decimal('peso_corregido', 8, 2)
-                  ->nullable()
-                  ->after('factor_raza')
-                  ->comment('Peso final = peso_original × factor_raza.');
+                ->nullable()
+                ->after('factor_raza')
+                ->comment('Peso final = peso_original × factor_raza.');
         });
     }
 

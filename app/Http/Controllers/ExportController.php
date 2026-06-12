@@ -39,7 +39,7 @@ class ExportController extends Controller
         $pdf = Pdf::loadView('reports.pesajes_pdf', compact('pesajes', 'usuario'))
             ->setPaper('A4', 'landscape');
 
-        return $pdf->download('historial_pesajes_' . now()->format('Y-m-d') . '.pdf');
+        return $pdf->download('historial_pesajes_'.now()->format('Y-m-d').'.pdf');
     }
 
     public function pesajesCsv(Request $request)
@@ -60,16 +60,16 @@ class ExportController extends Controller
         }
 
         $pesajes = $query->get();
-        $filename = 'historial_pesajes_' . now()->format('Y-m-d') . '.csv';
+        $filename = 'historial_pesajes_'.now()->format('Y-m-d').'.csv';
 
         $headers = [
-            'Content-Type'        => 'text/csv; charset=UTF-8',
+            'Content-Type' => 'text/csv; charset=UTF-8',
             'Content-Disposition' => "attachment; filename=\"{$filename}\"",
         ];
 
         $callback = function () use ($pesajes) {
             $out = fopen('php://output', 'w');
-            fprintf($out, chr(0xEF) . chr(0xBB) . chr(0xBF));
+            fprintf($out, chr(0xEF).chr(0xBB).chr(0xBF));
             fputcsv($out, ['Fecha', 'Arete', 'Animal', 'Finca', 'Peso (kg)', 'Tipo']);
             foreach ($pesajes as $p) {
                 fputcsv($out, [
@@ -106,7 +106,7 @@ class ExportController extends Controller
         }
 
         $pesajes = $query->get();
-        $filename = 'historial_pesajes_' . now()->format('Y-m-d') . '.xlsx';
+        $filename = 'historial_pesajes_'.now()->format('Y-m-d').'.xlsx';
 
         return Excel::download(new PesajesExport($pesajes), $filename);
     }
@@ -132,7 +132,7 @@ class ExportController extends Controller
         $pdf = Pdf::loadView('reports.animales_pdf', compact('animales', 'usuario'))
             ->setPaper('A4', 'landscape');
 
-        return $pdf->download('mis_animales_' . now()->format('Y-m-d') . '.pdf');
+        return $pdf->download('mis_animales_'.now()->format('Y-m-d').'.pdf');
     }
 
     public function animalesCsv(Request $request)
@@ -148,16 +148,16 @@ class ExportController extends Controller
         }
 
         $animales = $query->get();
-        $filename = 'mis_animales_' . now()->format('Y-m-d') . '.csv';
+        $filename = 'mis_animales_'.now()->format('Y-m-d').'.csv';
 
         $headers = [
-            'Content-Type'        => 'text/csv; charset=UTF-8',
+            'Content-Type' => 'text/csv; charset=UTF-8',
             'Content-Disposition' => "attachment; filename=\"{$filename}\"",
         ];
 
         $callback = function () use ($animales) {
             $out = fopen('php://output', 'w');
-            fprintf($out, chr(0xEF) . chr(0xBB) . chr(0xBF));
+            fprintf($out, chr(0xEF).chr(0xBB).chr(0xBF));
             fputcsv($out, ['Arete', 'Nombre', 'Finca', 'Raza', 'Sexo', 'Estado', 'Total Pesajes', 'Último Peso (kg)']);
             foreach ($animales as $a) {
                 $ultimoPeso = $a->pesajes->sortByDesc('fecha')->first();
@@ -192,7 +192,7 @@ class ExportController extends Controller
         }
 
         $animales = $query->get();
-        $filename = 'mis_animales_' . now()->format('Y-m-d') . '.xlsx';
+        $filename = 'mis_animales_'.now()->format('Y-m-d').'.xlsx';
 
         return Excel::download(new AnimalesExport($animales), $filename);
     }

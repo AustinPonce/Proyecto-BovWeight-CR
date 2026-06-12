@@ -21,9 +21,9 @@ class RecordatorioFactory extends Factory
     public function definition(): array
     {
         return [
-            'frecuencia'   => fake()->randomElement(['Semanal', 'Quincenal', 'Mensual', 'Trimestral']),
+            'frecuencia' => fake()->randomElement(['Semanal', 'Quincenal', 'Mensual', 'Trimestral']),
             'fecha_inicio' => fake()->dateTimeBetween('now', '+2 months')->format('Y-m-d'),
-            'arete'        => Animal::factory(),
+            'arete' => Animal::factory(),
         ];
     }
 

@@ -27,31 +27,49 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  */
 class Auditoria extends Model
 {
-    protected $table      = 'Auditoria';
+    protected $table = 'Auditoria';
+
     protected $primaryKey = 'id_auditoria';
-    public    $timestamps = false;            // Solo created_at, no updated_at
+
+    public $timestamps = false;            // Solo created_at, no updated_at
 
     // Módulos del sistema
-    public const MODULO_AUTH          = 'auth';
-    public const MODULO_FINCAS        = 'fincas';
-    public const MODULO_ANIMALES      = 'animales';
-    public const MODULO_PESAJES       = 'pesajes';
+    public const MODULO_AUTH = 'auth';
+
+    public const MODULO_FINCAS = 'fincas';
+
+    public const MODULO_ANIMALES = 'animales';
+
+    public const MODULO_PESAJES = 'pesajes';
+
     public const MODULO_TRANSACCIONES = 'transacciones';
-    public const MODULO_VETERINARIOS  = 'veterinarios';
-    public const MODULO_USUARIOS      = 'usuarios';
-    public const MODULO_CATALOGOS     = 'catalogos';
+
+    public const MODULO_VETERINARIOS = 'veterinarios';
+
+    public const MODULO_USUARIOS = 'usuarios';
+
+    public const MODULO_CATALOGOS = 'catalogos';
 
     // Acciones del sistema
-    public const ACCION_LOGIN        = 'login';
-    public const ACCION_LOGOUT       = 'logout';
-    public const ACCION_REGISTRO     = 'registro';
-    public const ACCION_CREAR        = 'crear';
-    public const ACCION_ACTUALIZAR   = 'actualizar';
-    public const ACCION_ELIMINAR     = 'eliminar';
-    public const ACCION_ACTIVAR      = 'activar';
-    public const ACCION_DESACTIVAR   = 'desactivar';
-    public const ACCION_ASIGNAR      = 'asignar';
-    public const ACCION_DESASIGNAR   = 'desasignar';
+    public const ACCION_LOGIN = 'login';
+
+    public const ACCION_LOGOUT = 'logout';
+
+    public const ACCION_REGISTRO = 'registro';
+
+    public const ACCION_CREAR = 'crear';
+
+    public const ACCION_ACTUALIZAR = 'actualizar';
+
+    public const ACCION_ELIMINAR = 'eliminar';
+
+    public const ACCION_ACTIVAR = 'activar';
+
+    public const ACCION_DESACTIVAR = 'desactivar';
+
+    public const ACCION_ASIGNAR = 'asignar';
+
+    public const ACCION_DESASIGNAR = 'desasignar';
 
     protected $fillable = [
         'cedula_usuario',
@@ -68,9 +86,9 @@ class Auditoria extends Model
     protected function casts(): array
     {
         return [
-            'datos_antes'   => 'array',
+            'datos_antes' => 'array',
             'datos_despues' => 'array',
-            'created_at'    => 'datetime',
+            'created_at' => 'datetime',
         ];
     }
 
@@ -106,6 +124,7 @@ class Auditoria extends Model
         if ($hasta) {
             $query->whereDate('created_at', '<=', $hasta);
         }
+
         return $query;
     }
 

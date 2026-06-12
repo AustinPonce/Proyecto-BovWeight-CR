@@ -88,7 +88,7 @@ class PesajeController extends Controller
             ->get();
 
         return view('pesajes.create', [
-            'animales'           => $animales,
+            'animales' => $animales,
             'animalPreseleccionado' => $request->input('animal'),
         ]);
     }
@@ -101,13 +101,13 @@ class PesajeController extends Controller
     public function calcular(Request $request): JsonResponse
     {
         $datos = $request->validate([
-            'arete'              => ['required', 'string', Rule::exists('Animal', 'arete')],
-            'tipo'               => ['required', Rule::in(['manual', 'foto'])],
-            'largo_cuerpo'       => ['required_if:tipo,manual', 'nullable', 'numeric', 'min:30', 'max:300'],
-            'altura'             => ['required_if:tipo,manual', 'nullable', 'numeric', 'min:30', 'max:200'],
+            'arete' => ['required', 'string', Rule::exists('Animal', 'arete')],
+            'tipo' => ['required', Rule::in(['manual', 'foto'])],
+            'largo_cuerpo' => ['required_if:tipo,manual', 'nullable', 'numeric', 'min:30', 'max:300'],
+            'altura' => ['required_if:tipo,manual', 'nullable', 'numeric', 'min:30', 'max:200'],
             'perimetro_toracico' => ['required_if:tipo,manual', 'nullable', 'numeric', 'min:30', 'max:300'],
-            'imagen'             => ['required_if:tipo,foto', 'nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
-            'categoria_animal'   => ['nullable', Rule::in(['auto', 'cria', 'cria_neonato', 'cria_joven', 'cria_mayor', 'joven', 'adulto'])],
+            'imagen' => ['required_if:tipo,foto', 'nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
+            'categoria_animal' => ['nullable', Rule::in(['auto', 'cria', 'cria_neonato', 'cria_joven', 'cria_mayor', 'joven', 'adulto'])],
         ]);
 
         $this->autorizarAnimal($request, $datos['arete']);
@@ -120,16 +120,16 @@ class PesajeController extends Controller
 
         // Elegir estrategia y calcular.
         $strategy = $this->resolverStrategy($datos['tipo']);
-        $context  = new CalculadorPesoContext($strategy);
+        $context = new CalculadorPesoContext($strategy);
 
         $datosCalculo = $datos['tipo'] === 'manual'
             ? [
-                'largo_cuerpo'       => (float) $datos['largo_cuerpo'],
-                'altura'             => (float) $datos['altura'],
+                'largo_cuerpo' => (float) $datos['largo_cuerpo'],
+                'altura' => (float) $datos['altura'],
                 'perimetro_toracico' => (float) $datos['perimetro_toracico'],
             ]
             : [
-                'imagen'    => $pathImagen,
+                'imagen' => $pathImagen,
                 'categoria' => $datos['categoria_animal'] ?? 'auto',
             ];
 
@@ -139,19 +139,20 @@ class PesajeController extends Controller
             if ($pathImagen) {
                 Storage::disk('public')->delete($pathImagen);
             }
+
             return response()->json(['error' => $e->mensajeUsuario], 422);
         }
 
         // RF13 — Factor de corrección por raza.
-        $animal        = Animal::with('raza')->whereKey($datos['arete'])->first();
-        $factorRaza    = (float) ($animal->raza->factor_correccion ?? 1.0);
+        $animal = Animal::with('raza')->whereKey($datos['arete'])->first();
+        $factorRaza = (float) ($animal->raza->factor_correccion ?? 1.0);
         $pesoCalculado = round($pesoOriginal * $factorRaza, 2);
 
         return response()->json([
-            'peso_calculado'     => $pesoCalculado,
+            'peso_calculado' => $pesoCalculado,
             'peso_original_calc' => round($pesoOriginal, 2),
-            'factor_raza_calc'   => $factorRaza,
-            'imagen_guardada'    => $pathImagen ?? '',
+            'factor_raza_calc' => $factorRaza,
+            'imagen_guardada' => $pathImagen ?? '',
         ]);
     }
 
@@ -168,18 +169,18 @@ class PesajeController extends Controller
 
         // 2) Imagen y peso: si vienen del paso 1 (calcular), ya están listos.
         //    Si no (flujo directo sin JS), calcular de nuevo.
-        $pathImagen    = null;
-        $pesoOriginal  = 0;
-        $factorRaza    = 1.0;
+        $pathImagen = null;
+        $pesoOriginal = 0;
+        $factorRaza = 1.0;
         $pesoCorregido = 0;
 
         $usoDosParos = ! empty($datos['imagen_guardada']) || ! empty($datos['peso_calculado']);
 
         if ($usoDosParos) {
             // --- Paso 2: valores ya calculados en calcular() ---
-            $pathImagen    = $datos['imagen_guardada'] ?: null;
-            $pesoOriginal  = (float) ($datos['peso_original_calc'] ?? $datos['peso_calculado']);
-            $factorRaza    = (float) ($datos['factor_raza_calc'] ?? 1.0);
+            $pathImagen = $datos['imagen_guardada'] ?: null;
+            $pesoOriginal = (float) ($datos['peso_original_calc'] ?? $datos['peso_calculado']);
+            $factorRaza = (float) ($datos['factor_raza_calc'] ?? 1.0);
             $pesoCorregido = round((float) $datos['peso_calculado'], 2);
         } else {
             // --- Flujo directo (fallback si JS está desactivado) ---
@@ -188,12 +189,12 @@ class PesajeController extends Controller
             }
 
             $strategy = $this->resolverStrategy($datos['tipo']);
-            $context  = new CalculadorPesoContext($strategy);
+            $context = new CalculadorPesoContext($strategy);
 
             $datosCalculo = $datos['tipo'] === 'manual'
                 ? [
-                    'largo_cuerpo'       => (float) $datos['largo_cuerpo'],
-                    'altura'             => (float) $datos['altura'],
+                    'largo_cuerpo' => (float) $datos['largo_cuerpo'],
+                    'altura' => (float) $datos['altura'],
                     'perimetro_toracico' => (float) $datos['perimetro_toracico'],
                 ]
                 : ['imagen' => $pathImagen];
@@ -204,14 +205,15 @@ class PesajeController extends Controller
                 if ($pathImagen) {
                     Storage::disk('public')->delete($pathImagen);
                 }
+
                 return redirect()
                     ->route('pesajes.create', ['animal' => $datos['arete']])
                     ->withInput()
                     ->withErrors(['imagen' => $e->mensajeUsuario]);
             }
 
-            $animal        = Animal::with('raza')->whereKey($datos['arete'])->first();
-            $factorRaza    = (float) ($animal->raza->factor_correccion ?? 1.0);
+            $animal = Animal::with('raza')->whereKey($datos['arete'])->first();
+            $factorRaza = (float) ($animal->raza->factor_correccion ?? 1.0);
             $pesoCorregido = round($pesoOriginal * $factorRaza, 2);
         }
 
@@ -221,7 +223,7 @@ class PesajeController extends Controller
         //        ese valor reemplaza la estimación como peso oficial del registro.
         $fueCorrectionManual = false;
         if (! empty($datos['peso_manual']) && (float) $datos['peso_manual'] > 0) {
-            $pesoFinal           = round((float) $datos['peso_manual'], 2);
+            $pesoFinal = round((float) $datos['peso_manual'], 2);
             $fueCorrectionManual = true;
         }
 
@@ -230,18 +232,18 @@ class PesajeController extends Controller
         //    - CrearNotificacionObserver → notificación si hay recordatorio
         //    - VerificarPesoObserver    → alerta sanitaria si peso < 100
         Pesaje::create([
-            'fecha'          => Carbon::now(),
-            'peso'           => $pesoFinal,
-            'peso_original'  => round($pesoOriginal, 2),
-            'factor_raza'    => $factorRaza,
+            'fecha' => Carbon::now(),
+            'peso' => $pesoFinal,
+            'peso_original' => round($pesoOriginal, 2),
+            'factor_raza' => $factorRaza,
             'peso_corregido' => $pesoCorregido,
-            'imagen'         => $pathImagen,
-            'sincronizado'   => 1,
-            'arete'          => $datos['arete'],
+            'imagen' => $pathImagen,
+            'sincronizado' => 1,
+            'arete' => $datos['arete'],
             'id_tipo_pesaje' => $this->resolverTipoPesajeId($datos['tipo']),
         ]);
 
-        $msgFactor    = $factorRaza != 1.0
+        $msgFactor = $factorRaza != 1.0
             ? " (original: {$pesoOriginal} kg × factor {$factorRaza} raza)"
             : '';
         $msgCorreccion = $fueCorrectionManual
@@ -293,8 +295,8 @@ class PesajeController extends Controller
     private function resolverStrategy(string $tipo): ICalculadorPeso
     {
         return match ($tipo) {
-            'manual' => new FormulaManualStrategy(),
-            'foto'   => new FotoIAWeightStrategy(),
+            'manual' => new FormulaManualStrategy,
+            'foto' => new FotoIAWeightStrategy,
         };
     }
 

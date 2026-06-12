@@ -20,9 +20,9 @@ use RuntimeException;
 class NoBovinoDetectadoException extends RuntimeException
 {
     /**
-     * @param string $mensajeUsuario  Mensaje legible para mostrar al usuario.
-     * @param array  $detalles        Datos opcionales del diagnóstico
-     *                                (ej. ['clase' => 'horse', 'confianza' => 0.87]).
+     * @param  string  $mensajeUsuario  Mensaje legible para mostrar al usuario.
+     * @param  array  $detalles  Datos opcionales del diagnóstico
+     *                           (ej. ['clase' => 'horse', 'confianza' => 0.87]).
      */
     public function __construct(
         public readonly string $mensajeUsuario,

@@ -24,7 +24,7 @@ class FincaFactory extends Factory
     public function definition(): array
     {
         return [
-            'nombre'    => 'Finca ' . fake()->unique()->lastName(),
+            'nombre' => 'Finca '.fake()->unique()->lastName(),
             'ubicacion' => fake()->randomElement([
                 'Liberia, Guanacaste',
                 'Bagaces, Guanacaste',

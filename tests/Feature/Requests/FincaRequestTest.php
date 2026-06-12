@@ -2,7 +2,6 @@
 
 namespace Tests\Feature\Requests;
 
-use App\Models\Finca;
 use App\Models\Usuario;
 use Database\Seeders\CatalogosSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -25,10 +24,10 @@ class FincaRequestTest extends TestCase
     private function createTestUser(int $rolId, string $cedula): Usuario
     {
         return Usuario::create([
-            'cedula'          => $cedula,
-            'nombre'          => 'Usuario Test ' . $cedula,
-            'correo'          => 'test_' . $cedula . '@bovweight.cr',
-            'contrasena'      => 'bovweight2026',
+            'cedula' => $cedula,
+            'nombre' => 'Usuario Test '.$cedula,
+            'correo' => 'test_'.$cedula.'@bovweight.cr',
+            'contrasena' => 'bovweight2026',
             'id_tipo_usuario' => $rolId,
         ]);
     }
@@ -45,7 +44,7 @@ class FincaRequestTest extends TestCase
         $admin = $this->createTestUser(Usuario::ROL_ADMIN, '100000001');
 
         $data = [
-            'nombre'    => 'Finca del Administrador',
+            'nombre' => 'Finca del Administrador',
             'ubicacion' => 'San José, Costa Rica',
         ];
 
@@ -64,7 +63,7 @@ class FincaRequestTest extends TestCase
         $ganadero = $this->createTestUser(Usuario::ROL_GANADERO, '100000002');
 
         $data = [
-            'nombre'    => 'Finca del Ganadero',
+            'nombre' => 'Finca del Ganadero',
             'ubicacion' => 'Pérez Zeledón, San José',
         ];
 
@@ -83,7 +82,7 @@ class FincaRequestTest extends TestCase
         $vet = $this->createTestUser(Usuario::ROL_VETERINARIO, '100000003');
 
         $data = [
-            'nombre'    => 'Finca del Veterinario',
+            'nombre' => 'Finca del Veterinario',
             'ubicacion' => 'Liberia, Guanacaste',
         ];
 
@@ -100,7 +99,7 @@ class FincaRequestTest extends TestCase
     public function test_invitado_no_autorizado_para_crear_finca(): void
     {
         $data = [
-            'nombre'    => 'Finca de Invitado',
+            'nombre' => 'Finca de Invitado',
             'ubicacion' => 'Alajuela, Costa Rica',
         ];
 
@@ -121,7 +120,7 @@ class FincaRequestTest extends TestCase
         $admin = $this->createTestUser(Usuario::ROL_ADMIN, '100000001');
 
         $data = [
-            'nombre'    => '', // vacío
+            'nombre' => '', // vacío
             'ubicacion' => 'Guápiles, Limón',
         ];
 
@@ -140,7 +139,7 @@ class FincaRequestTest extends TestCase
         $admin = $this->createTestUser(Usuario::ROL_ADMIN, '100000001');
 
         $data = [
-            'nombre'    => str_repeat('A', 101), // 101 caracteres
+            'nombre' => str_repeat('A', 101), // 101 caracteres
             'ubicacion' => 'Guápiles, Limón',
         ];
 
@@ -159,7 +158,7 @@ class FincaRequestTest extends TestCase
         $admin = $this->createTestUser(Usuario::ROL_ADMIN, '100000001');
 
         $data = [
-            'nombre'    => 'Finca El Encanto',
+            'nombre' => 'Finca El Encanto',
             'ubicacion' => '', // vacío
         ];
 
@@ -178,7 +177,7 @@ class FincaRequestTest extends TestCase
         $admin = $this->createTestUser(Usuario::ROL_ADMIN, '100000001');
 
         $data = [
-            'nombre'    => 'Finca El Encanto',
+            'nombre' => 'Finca El Encanto',
             'ubicacion' => str_repeat('B', 256), // 256 caracteres
         ];
 

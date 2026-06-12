@@ -12,13 +12,13 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('Notificacion', function (Blueprint $table) {
-    $table->integer('id_notificacion')->autoIncrement();
-    $table->text('mensaje');
-    $table->dateTime('fecha_envio');
-    $table->integer('id_recordatorio');
+            $table->integer('id_notificacion')->autoIncrement();
+            $table->text('mensaje');
+            $table->dateTime('fecha_envio');
+            $table->integer('id_recordatorio');
 
-    $table->foreign('id_recordatorio')->references('id_recordatorio')->on('Recordatorio')->onDelete('cascade')->onUpdate('cascade');
-});
+            $table->foreign('id_recordatorio')->references('id_recordatorio')->on('Recordatorio')->onDelete('cascade')->onUpdate('cascade');
+        });
     }
 
     /**

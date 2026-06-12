@@ -24,9 +24,9 @@ class AuditoriaPesajeObserver
         Log::info("AUDITORÍA SISTEMA: Pesaje ID {$pesaje->id_pesaje} registrado — {$pesoInfo}.");
 
         AuditoriaService::registrar(
-            accion:       Auditoria::ACCION_CREAR,
-            modulo:       Auditoria::MODULO_PESAJES,
-            descripcion:  "Pesaje #{$pesaje->id_pesaje} registrado para arete '{$pesaje->arete}' — {$pesoInfo}.",
+            accion: Auditoria::ACCION_CREAR,
+            modulo: Auditoria::MODULO_PESAJES,
+            descripcion: "Pesaje #{$pesaje->id_pesaje} registrado para arete '{$pesaje->arete}' — {$pesoInfo}.",
             datosDespues: $pesaje->toArray(),
         );
     }
@@ -36,10 +36,10 @@ class AuditoriaPesajeObserver
         Log::info("AUDITORÍA SISTEMA: Pesaje ID {$pesaje->id_pesaje} eliminado.");
 
         AuditoriaService::registrar(
-            accion:      Auditoria::ACCION_ELIMINAR,
-            modulo:      Auditoria::MODULO_PESAJES,
+            accion: Auditoria::ACCION_ELIMINAR,
+            modulo: Auditoria::MODULO_PESAJES,
             descripcion: "Pesaje #{$pesaje->id_pesaje} de arete '{$pesaje->arete}' eliminado.",
-            datosAntes:  $pesaje->toArray(),
+            datosAntes: $pesaje->toArray(),
         );
     }
 }

@@ -12,9 +12,9 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('Tipo_Pesaje', function (Blueprint $table) {
-    $table->integer('id_tipo_pesaje')->autoIncrement();
-    $table->string('tipo_pesaje', 50);
-});
+            $table->integer('id_tipo_pesaje')->autoIncrement();
+            $table->string('tipo_pesaje', 50);
+        });
     }
 
     /**

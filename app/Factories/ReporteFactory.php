@@ -3,8 +3,8 @@
 namespace App\Factories;
 
 use App\Contracts\IReporte;
-use App\Reports\ReportePDF;
 use App\Reports\ReporteExcel;
+use App\Reports\ReportePDF;
 use Exception;
 
 /**
@@ -23,8 +23,8 @@ class ReporteFactory
         $tipo = strtolower($tipo);
 
         return match ($tipo) {
-            'pdf' => new ReportePDF(),
-            'excel' => new ReporteExcel(),
+            'pdf' => new ReportePDF,
+            'excel' => new ReporteExcel,
             default => throw new Exception('Formato de reporte inválido')
         };
     }

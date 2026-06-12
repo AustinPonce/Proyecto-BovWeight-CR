@@ -10,7 +10,6 @@ use App\Models\Usuario;
 use App\Services\AuditoriaService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Password;
@@ -26,8 +25,8 @@ class UsuarioAdminController extends Controller
             $term = $request->input('buscar');
             $query->where(function ($q) use ($term) {
                 $q->where('nombre', 'like', "%{$term}%")
-                  ->orWhere('cedula', 'like', "%{$term}%")
-                  ->orWhere('correo', 'like', "%{$term}%");
+                    ->orWhere('cedula', 'like', "%{$term}%")
+                    ->orWhere('correo', 'like', "%{$term}%");
             });
         }
 
@@ -44,16 +43,17 @@ class UsuarioAdminController extends Controller
     public function create(): View
     {
         $roles = TipoUsuario::orderBy('nombre_tipo')->get();
+
         return view('admin.usuarios.create', compact('roles'));
     }
 
     public function store(Request $request): RedirectResponse
     {
         $datos = $request->validate([
-            'cedula'          => ['required', 'string', 'max:20', 'unique:Usuario,cedula'],
-            'nombre'          => ['required', 'string', 'max:100'],
-            'correo'          => ['required', 'email', 'max:100', 'unique:Usuario,correo'],
-            'contrasena'      => ['required', 'confirmed', Password::min(8)->mixedCase()->symbols()],
+            'cedula' => ['required', 'string', 'max:20', 'unique:Usuario,cedula'],
+            'nombre' => ['required', 'string', 'max:100'],
+            'correo' => ['required', 'email', 'max:100', 'unique:Usuario,correo'],
+            'contrasena' => ['required', 'confirmed', Password::min(8)->mixedCase()->symbols()],
             'id_tipo_usuario' => ['required', 'integer', 'exists:Tipo_usuario,id_tipo_usuario'],
         ]);
 
@@ -63,9 +63,9 @@ class UsuarioAdminController extends Controller
 
         // RF21 — Auditoría.
         AuditoriaService::registrar(
-            accion:       Auditoria::ACCION_CREAR,
-            modulo:       Auditoria::MODULO_USUARIOS,
-            descripcion:  "Admin creó usuario '{$usuario->nombre}' (cédula: {$usuario->cedula}, rol: {$usuario->id_tipo_usuario}).",
+            accion: Auditoria::ACCION_CREAR,
+            modulo: Auditoria::MODULO_USUARIOS,
+            descripcion: "Admin creó usuario '{$usuario->nombre}' (cédula: {$usuario->cedula}, rol: {$usuario->id_tipo_usuario}).",
             datosDespues: ['cedula' => $usuario->cedula, 'nombre' => $usuario->nombre, 'id_tipo_usuario' => $usuario->id_tipo_usuario],
         );
 
@@ -76,16 +76,17 @@ class UsuarioAdminController extends Controller
     public function edit(Usuario $usuario): View
     {
         $roles = TipoUsuario::orderBy('nombre_tipo')->get();
+
         return view('admin.usuarios.edit', compact('usuario', 'roles'));
     }
 
     public function update(Request $request, Usuario $usuario): RedirectResponse
     {
         $datos = $request->validate([
-            'nombre'          => ['required', 'string', 'max:100'],
-            'correo'          => ['required', 'email', 'max:100', Rule::unique('Usuario', 'correo')->ignore($usuario->cedula, 'cedula')],
+            'nombre' => ['required', 'string', 'max:100'],
+            'correo' => ['required', 'email', 'max:100', Rule::unique('Usuario', 'correo')->ignore($usuario->cedula, 'cedula')],
             'id_tipo_usuario' => ['required', 'integer', 'exists:Tipo_usuario,id_tipo_usuario'],
-            'contrasena'      => ['nullable', 'confirmed', Password::min(8)->mixedCase()->symbols()],
+            'contrasena' => ['nullable', 'confirmed', Password::min(8)->mixedCase()->symbols()],
         ]);
 
         if (empty($datos['contrasena'])) {
@@ -97,10 +98,10 @@ class UsuarioAdminController extends Controller
 
         // RF21 — Auditoría.
         AuditoriaService::registrar(
-            accion:       Auditoria::ACCION_ACTUALIZAR,
-            modulo:       Auditoria::MODULO_USUARIOS,
-            descripcion:  "Admin actualizó usuario '{$usuario->nombre}' (cédula: {$usuario->cedula}).",
-            datosAntes:   array_diff_key($original, ['contrasena' => '']),
+            accion: Auditoria::ACCION_ACTUALIZAR,
+            modulo: Auditoria::MODULO_USUARIOS,
+            descripcion: "Admin actualizó usuario '{$usuario->nombre}' (cédula: {$usuario->cedula}).",
+            datosAntes: array_diff_key($original, ['contrasena' => '']),
             datosDespues: array_diff_key($usuario->toArray(), ['contrasena' => '']),
         );
 
@@ -121,8 +122,8 @@ class UsuarioAdminController extends Controller
 
         // RF21 — Auditoría.
         AuditoriaService::registrar(
-            accion:      $usuario->activo ? Auditoria::ACCION_ACTIVAR : Auditoria::ACCION_DESACTIVAR,
-            modulo:      Auditoria::MODULO_USUARIOS,
+            accion: $usuario->activo ? Auditoria::ACCION_ACTIVAR : Auditoria::ACCION_DESACTIVAR,
+            modulo: Auditoria::MODULO_USUARIOS,
             descripcion: "Admin {$estado} al usuario '{$usuario->nombre}' (cédula: {$usuario->cedula}).",
             datosDespues: ['cedula' => $usuario->cedula, 'activo' => $usuario->activo],
         );
@@ -143,10 +144,10 @@ class UsuarioAdminController extends Controller
 
         // RF21 — Auditoría.
         AuditoriaService::registrar(
-            accion:      Auditoria::ACCION_ELIMINAR,
-            modulo:      Auditoria::MODULO_USUARIOS,
+            accion: Auditoria::ACCION_ELIMINAR,
+            modulo: Auditoria::MODULO_USUARIOS,
             descripcion: "Admin eliminó al usuario '{$snapshot['nombre']}' (cédula: {$snapshot['cedula']}).",
-            datosAntes:  array_diff_key($snapshot, ['contrasena' => '']),
+            datosAntes: array_diff_key($snapshot, ['contrasena' => '']),
         );
 
         return redirect()->route('admin.usuarios.index')

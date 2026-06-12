@@ -3,14 +3,14 @@
 use App\Http\Controllers\Api\AnimalController;
 use App\Http\Controllers\Api\AuditoriaController;
 use App\Http\Controllers\Api\ComentarioController;
-use App\Http\Controllers\Api\EstadoController;
-use App\Http\Controllers\Api\NotificacionController;
-use App\Http\Controllers\Api\RecordatorioController;
 use App\Http\Controllers\Api\DosisController;
+use App\Http\Controllers\Api\EstadoController;
 use App\Http\Controllers\Api\FincaController;
 use App\Http\Controllers\Api\MedicamentoController;
+use App\Http\Controllers\Api\NotificacionController;
 use App\Http\Controllers\Api\PesajeController;
 use App\Http\Controllers\Api\RazaController;
+use App\Http\Controllers\Api\RecordatorioController;
 use App\Http\Controllers\Api\TransaccionController;
 use App\Http\Controllers\Api\UsuarioController;
 use App\Http\Controllers\Api\VeterinarioFincaController;
@@ -36,9 +36,9 @@ use Illuminate\Support\Facades\Route;
 // ----------------------------------------------------------------------
 // Públicas (sin token)
 // ----------------------------------------------------------------------
-Route::post('/registro',         [AuthController::class, 'registrar']);
-Route::post('/login',            [AuthController::class, 'login']);
-Route::post('/forgot-password',  [AuthController::class, 'forgotPassword']);
+Route::post('/registro', [AuthController::class, 'registrar']);
+Route::post('/login', [AuthController::class, 'login']);
+Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
 
 // ----------------------------------------------------------------------
 // Protegidas (requieren header `Authorization: Bearer {token}`)
@@ -46,15 +46,15 @@ Route::post('/forgot-password',  [AuthController::class, 'forgotPassword']);
 Route::middleware('auth:sanctum')->group(function () {
 
     // ---- Sesión y perfil ----
-    Route::get('/usuario',  fn (Request $r) => $r->user()->load('tipoUsuario'));
-    Route::post('/logout',  [AuthController::class, 'logout']);
+    Route::get('/usuario', fn (Request $r) => $r->user()->load('tipoUsuario'));
+    Route::post('/logout', [AuthController::class, 'logout']);
 
     // ---- Recursos del negocio ----
     // IMPORTANTE: les ponemos prefijo 'api.' al nombre de las rutas
     // (api.fincas.index, api.animales.index, etc.) para que NO choquen
     // con las rutas web del mismo nombre. Sin esto, route('fincas.index')
     // en una vista Blade resolvería a /api/fincas en vez de /fincas.
-    Route::apiResource('fincas',   FincaController::class)
+    Route::apiResource('fincas', FincaController::class)
         ->names('api.fincas')
         ->middleware('rol:admin,ganadero,veterinario');
 
@@ -71,20 +71,20 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // ---- Comentarios veterinarios + Recordatorios ----
     Route::prefix('animales/{animal}')->group(function () {
-        Route::get('comentarios',              [ComentarioController::class, 'index'])->name('api.comentarios.index');
-        Route::post('comentarios',             [ComentarioController::class, 'store'])->name('api.comentarios.store');
+        Route::get('comentarios', [ComentarioController::class, 'index'])->name('api.comentarios.index');
+        Route::post('comentarios', [ComentarioController::class, 'store'])->name('api.comentarios.store');
         Route::delete('comentarios/{comentario}', [ComentarioController::class, 'destroy'])->name('api.comentarios.destroy');
 
-        Route::get('recordatorios',                    [RecordatorioController::class, 'index'])->name('api.recordatorios.index');
-        Route::post('recordatorios',                   [RecordatorioController::class, 'store'])->name('api.recordatorios.store');
-        Route::delete('recordatorios/{recordatorio}',  [RecordatorioController::class, 'destroy'])->name('api.recordatorios.destroy');
+        Route::get('recordatorios', [RecordatorioController::class, 'index'])->name('api.recordatorios.index');
+        Route::post('recordatorios', [RecordatorioController::class, 'store'])->name('api.recordatorios.store');
+        Route::delete('recordatorios/{recordatorio}', [RecordatorioController::class, 'destroy'])->name('api.recordatorios.destroy');
     });
 
     // ---- Veterinarios de una finca ----
     Route::get('veterinarios/buscar', [VeterinarioFincaController::class, 'buscar'])->name('api.veterinarios.buscar');
     Route::prefix('fincas/{finca}/veterinarios')->group(function () {
-        Route::get('/',            [VeterinarioFincaController::class, 'index'])->name('api.fincas.veterinarios.index');
-        Route::post('/',           [VeterinarioFincaController::class, 'store'])->name('api.fincas.veterinarios.store');
+        Route::get('/', [VeterinarioFincaController::class, 'index'])->name('api.fincas.veterinarios.index');
+        Route::post('/', [VeterinarioFincaController::class, 'store'])->name('api.fincas.veterinarios.store');
         Route::delete('/{cedula}', [VeterinarioFincaController::class, 'destroy'])->name('api.fincas.veterinarios.destroy');
     });
 
@@ -94,7 +94,7 @@ Route::middleware('auth:sanctum')->group(function () {
         ->names('api.transacciones');
 
     // ---- Calculadora de dosis ----
-    Route::get('medicamentos',    [DosisController::class, 'medicamentos'])->name('api.medicamentos.index');
+    Route::get('medicamentos', [DosisController::class, 'medicamentos'])->name('api.medicamentos.index');
     Route::post('dosis/calcular', [DosisController::class, 'calcular'])->name('api.dosis.calcular');
 
     // ---- Medicamentos CRUD (solo admin) ----

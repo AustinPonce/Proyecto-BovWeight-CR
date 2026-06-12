@@ -10,7 +10,9 @@ class Estado extends Model
     use HasFactory;
 
     protected $table = 'Estado';
+
     protected $primaryKey = 'id_estado';
+
     public $timestamps = false;
 
     protected $fillable = ['estado'];

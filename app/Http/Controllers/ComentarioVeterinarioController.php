@@ -40,10 +40,10 @@ class ComentarioVeterinarioController extends Controller
         ]);
 
         ComentarioVeterinario::create([
-            'arete'              => $animal->arete,
+            'arete' => $animal->arete,
             'cedula_veterinario' => $usuario->cedula,
-            'comentario'         => $request->input('comentario'),
-            'fecha'              => Carbon::now(),
+            'comentario' => $request->input('comentario'),
+            'fecha' => Carbon::now(),
         ]);
 
         return redirect()
@@ -71,10 +71,14 @@ class ComentarioVeterinarioController extends Controller
     {
         $u = auth()->user();
 
-        if ($u->esAdmin()) return;
+        if ($u->esAdmin()) {
+            return;
+        }
 
         // Ganadero dueño de la finca
-        if ($u->esGanadero() && $animal->finca->cedula === $u->cedula) return;
+        if ($u->esGanadero() && $animal->finca->cedula === $u->cedula) {
+            return;
+        }
 
         // Veterinario asignado a la finca del animal
         if ($u->esVeterinario()

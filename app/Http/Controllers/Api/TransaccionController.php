@@ -43,28 +43,28 @@ class TransaccionController extends Controller
         $usuario = $request->user();
 
         $datos = $request->validate([
-            'tipo'               => ['required', 'in:compra,venta'],
-            'arete'              => ['required', 'string', 'exists:Animal,arete'],
+            'tipo' => ['required', 'in:compra,venta'],
+            'arete' => ['required', 'string', 'exists:Animal,arete'],
             'nombre_contraparte' => ['required', 'string', 'max:150'],
             'cedula_contraparte' => ['nullable', 'string', 'max:30'],
-            'precio_por_kg'      => ['required', 'numeric', 'min:1', 'max:99999'],
-            'peso_negociado'     => ['required', 'numeric', 'min:1', 'max:3000'],
-            'notas'              => ['nullable', 'string', 'max:1000'],
+            'precio_por_kg' => ['required', 'numeric', 'min:1', 'max:99999'],
+            'peso_negociado' => ['required', 'numeric', 'min:1', 'max:3000'],
+            'notas' => ['nullable', 'string', 'max:1000'],
         ]);
 
         if (! Animal::visibleFor($usuario)->where('arete', $datos['arete'])->exists()) {
             return response()->json(['mensaje' => 'No tenés permiso sobre este animal.'], 403);
         }
 
-        $datos['monto_total']    = round($datos['precio_por_kg'] * $datos['peso_negociado'], 2);
-        $datos['fecha']          = Carbon::now();
+        $datos['monto_total'] = round($datos['precio_por_kg'] * $datos['peso_negociado'], 2);
+        $datos['fecha'] = Carbon::now();
         $datos['cedula_usuario'] = $usuario->cedula;
 
         $transaccion = Transaccion::create($datos);
 
         return response()->json([
             'mensaje' => 'Transacción registrada correctamente.',
-            'data'    => $transaccion,
+            'data' => $transaccion,
         ], 201);
     }
 

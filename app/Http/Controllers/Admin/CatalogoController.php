@@ -17,8 +17,8 @@ class CatalogoController extends Controller
     public function index(): View
     {
         return view('admin.catalogos.index', [
-            'razas'        => Raza::orderBy('raza')->get(),
-            'estados'      => Estado::orderBy('estado')->get(),
+            'razas' => Raza::orderBy('raza')->get(),
+            'estados' => Estado::orderBy('estado')->get(),
             'medicamentos' => Medicamento::orderBy('nombre')->get(),
         ]);
     }
@@ -28,18 +28,18 @@ class CatalogoController extends Controller
     public function storeMedicamento(Request $request): RedirectResponse
     {
         $request->validate([
-            'nombre'       => ['required', 'string', 'max:150'],
-            'unidad'       => ['required', 'in:ml,mg,g,UI'],
+            'nombre' => ['required', 'string', 'max:150'],
+            'unidad' => ['required', 'in:ml,mg,g,UI'],
             'dosis_por_kg' => ['required', 'numeric', 'min:0.0001', 'max:999'],
-            'descripcion'  => ['nullable', 'string', 'max:500'],
+            'descripcion' => ['nullable', 'string', 'max:500'],
         ]);
 
         Medicamento::create($request->only(['nombre', 'unidad', 'dosis_por_kg', 'descripcion']));
 
         // RF21 — Auditoría.
         AuditoriaService::registrar(
-            accion:      Auditoria::ACCION_CREAR,
-            modulo:      Auditoria::MODULO_CATALOGOS,
+            accion: Auditoria::ACCION_CREAR,
+            modulo: Auditoria::MODULO_CATALOGOS,
             descripcion: "Medicamento '{$request->nombre}' agregado al catálogo.",
         );
 
@@ -50,18 +50,18 @@ class CatalogoController extends Controller
     public function updateMedicamento(Request $request, Medicamento $medicamento): RedirectResponse
     {
         $request->validate([
-            'nombre'       => ['required', 'string', 'max:150'],
-            'unidad'       => ['required', 'in:ml,mg,g,UI'],
+            'nombre' => ['required', 'string', 'max:150'],
+            'unidad' => ['required', 'in:ml,mg,g,UI'],
             'dosis_por_kg' => ['required', 'numeric', 'min:0.0001', 'max:999'],
-            'descripcion'  => ['nullable', 'string', 'max:500'],
+            'descripcion' => ['nullable', 'string', 'max:500'],
         ]);
 
         $medicamento->update($request->only(['nombre', 'unidad', 'dosis_por_kg', 'descripcion']));
 
         // RF21 — Auditoría.
         AuditoriaService::registrar(
-            accion:      Auditoria::ACCION_ACTUALIZAR,
-            modulo:      Auditoria::MODULO_CATALOGOS,
+            accion: Auditoria::ACCION_ACTUALIZAR,
+            modulo: Auditoria::MODULO_CATALOGOS,
             descripcion: "Medicamento '{$medicamento->nombre}' actualizado.",
         );
 
@@ -75,8 +75,8 @@ class CatalogoController extends Controller
 
         // RF21 — Auditoría.
         AuditoriaService::registrar(
-            accion:      Auditoria::ACCION_ELIMINAR,
-            modulo:      Auditoria::MODULO_CATALOGOS,
+            accion: Auditoria::ACCION_ELIMINAR,
+            modulo: Auditoria::MODULO_CATALOGOS,
             descripcion: "Medicamento '{$medicamento->nombre}' eliminado del catálogo.",
         );
 
@@ -89,19 +89,19 @@ class CatalogoController extends Controller
     public function storeRaza(Request $request): RedirectResponse
     {
         $request->validate([
-            'raza'             => ['required', 'string', 'max:100', 'unique:Raza,raza'],
-            'factor_correccion'=> ['nullable', 'numeric', 'min:0.5', 'max:2.0'],
+            'raza' => ['required', 'string', 'max:100', 'unique:Raza,raza'],
+            'factor_correccion' => ['nullable', 'numeric', 'min:0.5', 'max:2.0'],
         ]);
 
         $raza = Raza::create([
-            'raza'              => $request->input('raza'),
+            'raza' => $request->input('raza'),
             'factor_correccion' => $request->input('factor_correccion', 1.0000),
         ]);
 
         // RF21 — Auditoría.
         AuditoriaService::registrar(
-            accion:      Auditoria::ACCION_CREAR,
-            modulo:      Auditoria::MODULO_CATALOGOS,
+            accion: Auditoria::ACCION_CREAR,
+            modulo: Auditoria::MODULO_CATALOGOS,
             descripcion: "Raza '{$raza->raza}' (factor: {$raza->factor_correccion}) agregada al catálogo.",
         );
 
@@ -112,22 +112,22 @@ class CatalogoController extends Controller
     public function updateRaza(Request $request, Raza $raza): RedirectResponse
     {
         $request->validate([
-            'raza'              => ['required', 'string', 'max:100'],
+            'raza' => ['required', 'string', 'max:100'],
             'factor_correccion' => ['nullable', 'numeric', 'min:0.5', 'max:2.0'],
         ]);
 
         $original = $raza->toArray();
         $raza->update([
-            'raza'              => $request->input('raza'),
+            'raza' => $request->input('raza'),
             'factor_correccion' => $request->input('factor_correccion', $raza->factor_correccion),
         ]);
 
         // RF21 — Auditoría.
         AuditoriaService::registrar(
-            accion:       Auditoria::ACCION_ACTUALIZAR,
-            modulo:       Auditoria::MODULO_CATALOGOS,
-            descripcion:  "Raza '{$raza->raza}' actualizada (factor: {$raza->factor_correccion}).",
-            datosAntes:   $original,
+            accion: Auditoria::ACCION_ACTUALIZAR,
+            modulo: Auditoria::MODULO_CATALOGOS,
+            descripcion: "Raza '{$raza->raza}' actualizada (factor: {$raza->factor_correccion}).",
+            datosAntes: $original,
             datosDespues: $raza->toArray(),
         );
 
@@ -142,8 +142,8 @@ class CatalogoController extends Controller
 
         // RF21 — Auditoría.
         AuditoriaService::registrar(
-            accion:      Auditoria::ACCION_ELIMINAR,
-            modulo:      Auditoria::MODULO_CATALOGOS,
+            accion: Auditoria::ACCION_ELIMINAR,
+            modulo: Auditoria::MODULO_CATALOGOS,
             descripcion: "Raza '{$nombre}' eliminada del catálogo.",
         );
 
@@ -160,8 +160,8 @@ class CatalogoController extends Controller
 
         // RF21 — Auditoría.
         AuditoriaService::registrar(
-            accion:      Auditoria::ACCION_CREAR,
-            modulo:      Auditoria::MODULO_CATALOGOS,
+            accion: Auditoria::ACCION_CREAR,
+            modulo: Auditoria::MODULO_CATALOGOS,
             descripcion: "Estado '{$request->estado}' agregado al catálogo.",
         );
 
@@ -176,8 +176,8 @@ class CatalogoController extends Controller
 
         // RF21 — Auditoría.
         AuditoriaService::registrar(
-            accion:      Auditoria::ACCION_ELIMINAR,
-            modulo:      Auditoria::MODULO_CATALOGOS,
+            accion: Auditoria::ACCION_ELIMINAR,
+            modulo: Auditoria::MODULO_CATALOGOS,
             descripcion: "Estado '{$nombre}' eliminado del catálogo.",
         );
 

@@ -17,8 +17,8 @@ class FincaResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
-            'id'        => (int) $this->id_finca,
-            'nombre'    => $this->nombre,
+            'id' => (int) $this->id_finca,
+            'nombre' => $this->nombre,
             'ubicacion' => $this->ubicacion,
 
             // Cantidad de animales (rápido, sin traerlos todos).

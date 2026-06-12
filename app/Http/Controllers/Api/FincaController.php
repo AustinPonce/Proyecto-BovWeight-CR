@@ -122,8 +122,12 @@ class FincaController extends Controller
 
     private function autorizarEdicion(Usuario $u, Finca $finca): void
     {
-        if ($u->esAdmin()) return;
-        if ($u->esGanadero() && $finca->cedula === $u->cedula) return;
+        if ($u->esAdmin()) {
+            return;
+        }
+        if ($u->esGanadero() && $finca->cedula === $u->cedula) {
+            return;
+        }
 
         abort(response()->json(['mensaje' => 'No tenés permiso para modificar esta finca'], 403));
     }

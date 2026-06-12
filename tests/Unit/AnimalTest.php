@@ -10,6 +10,8 @@ use App\Models\Raza;
 use App\Models\Sexo;
 use App\Models\Usuario;
 use Database\Seeders\CatalogosSeeder;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -30,10 +32,10 @@ class AnimalTest extends TestCase
     private function createTestUser(int $rolId, string $cedula): Usuario
     {
         return Usuario::create([
-            'cedula'          => $cedula,
-            'nombre'          => 'Usuario ' . $cedula,
-            'correo'          => 'test_' . $cedula . '@bovweight.cr',
-            'contrasena'      => 'password123',
+            'cedula' => $cedula,
+            'nombre' => 'Usuario '.$cedula,
+            'correo' => 'test_'.$cedula.'@bovweight.cr',
+            'contrasena' => 'password123',
             'id_tipo_usuario' => $rolId,
         ]);
     }
@@ -44,9 +46,9 @@ class AnimalTest extends TestCase
     private function createTestFinca(Usuario $owner, string $nombre): Finca
     {
         return Finca::create([
-            'nombre'    => $nombre,
+            'nombre' => $nombre,
             'ubicacion' => 'San Carlos',
-            'cedula'    => $owner->cedula,
+            'cedula' => $owner->cedula,
         ]);
     }
 
@@ -56,12 +58,12 @@ class AnimalTest extends TestCase
     private function createTestAnimal(string $arete, Finca $finca): Animal
     {
         return Animal::create([
-            'arete'     => $arete,
-            'nombre'    => 'Bovino ' . $arete,
-            'id_raza'   => 1, // Brahman
-            'id_sexo'   => 1, // Macho
+            'arete' => $arete,
+            'nombre' => 'Bovino '.$arete,
+            'id_raza' => 1, // Brahman
+            'id_sexo' => 1, // Macho
             'id_estado' => 1, // Activo
-            'id_finca'  => $finca->id_finca,
+            'id_finca' => $finca->id_finca,
         ]);
     }
 
@@ -74,7 +76,7 @@ class AnimalTest extends TestCase
      */
     public function test_modelo_animal_usa_arete_como_primary_key(): void
     {
-        $animal = new Animal();
+        $animal = new Animal;
 
         $this->assertEquals('arete', $animal->getKeyName());
         $this->assertFalse($animal->getIncrementing());
@@ -86,7 +88,7 @@ class AnimalTest extends TestCase
      */
     public function test_fillable_contiene_campos_correctos(): void
     {
-        $animal = new Animal();
+        $animal = new Animal;
 
         $expected = ['arete', 'nombre', 'id_raza', 'id_sexo', 'id_estado', 'id_finca'];
 
@@ -107,7 +109,7 @@ class AnimalTest extends TestCase
         $animal = $this->createTestAnimal('AR-01', $finca);
 
         // Verificar el método de relación
-        $this->assertInstanceOf(\Illuminate\Database\Eloquent\Relations\BelongsTo::class, $animal->finca());
+        $this->assertInstanceOf(BelongsTo::class, $animal->finca());
 
         // Verificar la relación cargada
         $this->assertInstanceOf(Finca::class, $animal->finca);
@@ -124,7 +126,7 @@ class AnimalTest extends TestCase
         $animal = $this->createTestAnimal('AR-02', $finca);
 
         // Verificar el método de relación
-        $this->assertInstanceOf(\Illuminate\Database\Eloquent\Relations\BelongsTo::class, $animal->raza());
+        $this->assertInstanceOf(BelongsTo::class, $animal->raza());
 
         // Verificar la relación cargada
         $this->assertInstanceOf(Raza::class, $animal->raza);
@@ -141,7 +143,7 @@ class AnimalTest extends TestCase
         $animal = $this->createTestAnimal('AR-03', $finca);
 
         // Verificar el método de relación
-        $this->assertInstanceOf(\Illuminate\Database\Eloquent\Relations\BelongsTo::class, $animal->sexo());
+        $this->assertInstanceOf(BelongsTo::class, $animal->sexo());
 
         // Verificar la relación cargada
         $this->assertInstanceOf(Sexo::class, $animal->sexo);
@@ -158,7 +160,7 @@ class AnimalTest extends TestCase
         $animal = $this->createTestAnimal('AR-04', $finca);
 
         // Verificar el método de relación
-        $this->assertInstanceOf(\Illuminate\Database\Eloquent\Relations\BelongsTo::class, $animal->estado());
+        $this->assertInstanceOf(BelongsTo::class, $animal->estado());
 
         // Verificar la relación cargada
         $this->assertInstanceOf(Estado::class, $animal->estado);
@@ -176,16 +178,16 @@ class AnimalTest extends TestCase
 
         // Crear un registro de pesaje manual asociado
         $pesaje = Pesaje::create([
-            'fecha'          => now(),
-            'peso'           => 420.50,
-            'imagen'         => null,
-            'sincronizado'   => 1,
-            'arete'          => $animal->arete,
+            'fecha' => now(),
+            'peso' => 420.50,
+            'imagen' => null,
+            'sincronizado' => 1,
+            'arete' => $animal->arete,
             'id_tipo_pesaje' => 2, // Pesaje Manual
         ]);
 
         // Verificar el método de relación
-        $this->assertInstanceOf(\Illuminate\Database\Eloquent\Relations\HasMany::class, $animal->pesajes());
+        $this->assertInstanceOf(HasMany::class, $animal->pesajes());
 
         // Verificar la relación cargada
         $this->assertTrue($animal->pesajes->contains($pesaje));

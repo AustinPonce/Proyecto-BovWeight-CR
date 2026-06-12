@@ -2,12 +2,12 @@
 
 namespace App\Models;
 
-use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 
 /**
@@ -27,14 +27,20 @@ class Usuario extends Authenticatable
 
     // --- Configuración de la tabla (no usa convenciones Laravel por defecto) ---
     protected $table = 'Usuario';
+
     protected $primaryKey = 'cedula';
+
     public $incrementing = false;       // La cédula es string, no autoincremental
+
     protected $keyType = 'string';
+
     public $timestamps = false;         // El esquema no tiene created_at/updated_at
 
     // --- Constantes de rol: usar siempre estas en vez de hardcodear ids ---
-    public const ROL_ADMIN       = 1;
-    public const ROL_GANADERO    = 2;
+    public const ROL_ADMIN = 1;
+
+    public const ROL_GANADERO = 2;
+
     public const ROL_VETERINARIO = 3;
 
     /**
@@ -66,7 +72,7 @@ class Usuario extends Authenticatable
     {
         return [
             'contrasena' => 'hashed',
-            'activo'     => 'boolean',
+            'activo' => 'boolean',
         ];
     }
 
@@ -97,9 +103,20 @@ class Usuario extends Authenticatable
         return in_array((int) $this->id_tipo_usuario, $ids, true);
     }
 
-    public function esAdmin(): bool        { return $this->tieneRol(self::ROL_ADMIN); }
-    public function esGanadero(): bool     { return $this->tieneRol(self::ROL_GANADERO); }
-    public function esVeterinario(): bool  { return $this->tieneRol(self::ROL_VETERINARIO); }
+    public function esAdmin(): bool
+    {
+        return $this->tieneRol(self::ROL_ADMIN);
+    }
+
+    public function esGanadero(): bool
+    {
+        return $this->tieneRol(self::ROL_GANADERO);
+    }
+
+    public function esVeterinario(): bool
+    {
+        return $this->tieneRol(self::ROL_VETERINARIO);
+    }
 
     // ------------------------------------------------------------------
     // Relaciones Eloquent

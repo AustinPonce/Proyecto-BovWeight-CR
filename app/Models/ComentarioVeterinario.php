@@ -8,7 +8,9 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class ComentarioVeterinario extends Model
 {
     protected $table = 'ComentarioVeterinario';
+
     protected $primaryKey = 'id_comentario';
+
     public $timestamps = false;
 
     protected $fillable = [

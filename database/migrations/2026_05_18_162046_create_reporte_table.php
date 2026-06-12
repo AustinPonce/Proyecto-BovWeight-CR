@@ -12,12 +12,12 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('Reporte', function (Blueprint $table) {
-    $table->integer('id_reporte')->autoIncrement();
-    $table->dateTime('fecha_generacion');
-    $table->integer('id_Tipo_Formato');
+            $table->integer('id_reporte')->autoIncrement();
+            $table->dateTime('fecha_generacion');
+            $table->integer('id_Tipo_Formato');
 
-    $table->foreign('id_Tipo_Formato')->references('id_Tipo_Formato')->on('Tipo_Formato')->onDelete('restrict')->onUpdate('cascade');
-});
+            $table->foreign('id_Tipo_Formato')->references('id_Tipo_Formato')->on('Tipo_Formato')->onDelete('restrict')->onUpdate('cascade');
+        });
     }
 
     /**

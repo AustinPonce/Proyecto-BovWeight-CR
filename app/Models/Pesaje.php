@@ -1,21 +1,24 @@
 <?php
+
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
+use App\Observers\AuditoriaPesajeObserver;
 use App\Observers\CrearNotificacionObserver;
 use App\Observers\VerificarPesoObserver;
-use App\Observers\AuditoriaPesajeObserver;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 
 #[ObservedBy([CrearNotificacionObserver::class, VerificarPesoObserver::class, AuditoriaPesajeObserver::class])]
 class Pesaje extends Model
 {
     use HasFactory;
 
-    protected $table      = 'Pesaje';
+    protected $table = 'Pesaje';
+
     protected $primaryKey = 'id_pesaje';
-    public    $timestamps = false;
+
+    public $timestamps = false;
 
     /**
      * Campos del pesaje base + campos de corrección por raza (RF13).
@@ -40,11 +43,11 @@ class Pesaje extends Model
     protected function casts(): array
     {
         return [
-            'peso'           => 'decimal:2',
-            'peso_original'  => 'decimal:2',
-            'factor_raza'    => 'decimal:4',
+            'peso' => 'decimal:2',
+            'peso_original' => 'decimal:2',
+            'factor_raza' => 'decimal:4',
             'peso_corregido' => 'decimal:2',
-            'sincronizado'   => 'boolean',
+            'sincronizado' => 'boolean',
         ];
     }
 

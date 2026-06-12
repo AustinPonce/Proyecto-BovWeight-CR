@@ -20,9 +20,13 @@ class Animal extends Model
     use HasFactory;
 
     protected $table = 'Animal';
+
     protected $primaryKey = 'arete';
+
     public $incrementing = false;       // PK es string (formato SENASA)
+
     protected $keyType = 'string';
+
     public $timestamps = false;
 
     protected $fillable = ['arete', 'nombre', 'id_raza', 'id_sexo', 'id_estado', 'id_finca'];

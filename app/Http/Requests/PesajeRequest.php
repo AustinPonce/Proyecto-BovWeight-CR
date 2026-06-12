@@ -46,22 +46,22 @@ class PesajeRequest extends FormRequest
         $imagenYaGuardada = $this->filled('imagen_guardada');
 
         $reglas = [
-            'arete'               => ['required', 'string', Rule::exists('Animal', 'arete')],
-            'tipo'                => ['required', Rule::in(['manual', 'foto'])],
+            'arete' => ['required', 'string', Rule::exists('Animal', 'arete')],
+            'tipo' => ['required', Rule::in(['manual', 'foto'])],
             // RF04: peso manual opcional — ingresado en la pantalla de confirmación
-            'peso_manual'         => ['nullable', 'numeric', 'min:1', 'max:2000'],
+            'peso_manual' => ['nullable', 'numeric', 'min:1', 'max:2000'],
             // Campos del flujo de dos pasos (paso 2)
-            'imagen_guardada'     => ['nullable', 'string'],
-            'peso_calculado'      => ['nullable', 'numeric', 'min:0'],
-            'peso_original_calc'  => ['nullable', 'numeric', 'min:0'],
-            'factor_raza_calc'    => ['nullable', 'numeric', 'min:0'],
+            'imagen_guardada' => ['nullable', 'string'],
+            'peso_calculado' => ['nullable', 'numeric', 'min:0'],
+            'peso_original_calc' => ['nullable', 'numeric', 'min:0'],
+            'factor_raza_calc' => ['nullable', 'numeric', 'min:0'],
         ];
 
         if ($this->input('tipo') === 'manual') {
             // Validamos las 3 medidas corporales que pide FormulaManualStrategy.
             $reglas += [
-                'largo_cuerpo'       => ['required', 'numeric', 'min:30', 'max:300'],
-                'altura'             => ['required', 'numeric', 'min:30', 'max:200'],
+                'largo_cuerpo' => ['required', 'numeric', 'min:30', 'max:300'],
+                'altura' => ['required', 'numeric', 'min:30', 'max:200'],
                 'perimetro_toracico' => ['required', 'numeric', 'min:30', 'max:300'],
             ];
         }
@@ -82,22 +82,22 @@ class PesajeRequest extends FormRequest
     {
         return [
             'arete.required' => 'Debés seleccionar un animal.',
-            'arete.exists'   => 'El animal seleccionado no existe.',
-            'tipo.in'        => 'El tipo de pesaje debe ser manual o por foto.',
+            'arete.exists' => 'El animal seleccionado no existe.',
+            'tipo.in' => 'El tipo de pesaje debe ser manual o por foto.',
 
-            'largo_cuerpo.required'       => 'Ingresá el largo del cuerpo.',
-            'largo_cuerpo.numeric'        => 'El largo debe ser un número.',
-            'altura.required'             => 'Ingresá la altura.',
+            'largo_cuerpo.required' => 'Ingresá el largo del cuerpo.',
+            'largo_cuerpo.numeric' => 'El largo debe ser un número.',
+            'altura.required' => 'Ingresá la altura.',
             'perimetro_toracico.required' => 'Ingresá el perímetro torácico.',
 
             'imagen.required' => 'Subí una foto del animal.',
-            'imagen.image'    => 'El archivo debe ser una imagen.',
-            'imagen.mimes'    => 'La imagen debe ser JPG, PNG o WEBP.',
-            'imagen.max'      => 'La imagen no puede pesar más de 5 MB.',
+            'imagen.image' => 'El archivo debe ser una imagen.',
+            'imagen.mimes' => 'La imagen debe ser JPG, PNG o WEBP.',
+            'imagen.max' => 'La imagen no puede pesar más de 5 MB.',
 
             'peso_manual.numeric' => 'El peso ingresado debe ser un número.',
-            'peso_manual.min'     => 'El peso debe ser al menos 1 kg.',
-            'peso_manual.max'     => 'El peso no puede superar 2000 kg.',
+            'peso_manual.min' => 'El peso debe ser al menos 1 kg.',
+            'peso_manual.max' => 'El peso no puede superar 2000 kg.',
         ];
     }
 }

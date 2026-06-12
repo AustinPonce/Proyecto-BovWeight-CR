@@ -25,21 +25,21 @@ class ComentarioController extends Controller
         $aretesVisibles = Animal::visibleFor($request->user())->pluck('arete');
 
         $comentarios = ComentarioVeterinario::with([
-                'animal:arete,nombre',
-                'veterinario:cedula,nombre',
-            ])
+            'animal:arete,nombre',
+            'veterinario:cedula,nombre',
+        ])
             ->whereIn('arete', $aretesVisibles)
             ->orderByDesc('fecha')
             ->get()
             ->map(fn ($c) => [
-                'id_comentario'      => $c->id_comentario,
-                'arete'              => $c->arete,
-                'comentario'         => $c->comentario,
-                'fecha'              => $c->fecha,
+                'id_comentario' => $c->id_comentario,
+                'arete' => $c->arete,
+                'comentario' => $c->comentario,
+                'fecha' => $c->fecha,
                 'cedula_veterinario' => $c->cedula_veterinario,
-                'veterinario'        => $c->veterinario?->nombre,
-                'animal'             => $c->animal ? [
-                    'arete'  => $c->animal->arete,
+                'veterinario' => $c->veterinario?->nombre,
+                'animal' => $c->animal ? [
+                    'arete' => $c->animal->arete,
                     'nombre' => $c->animal->nombre,
                 ] : null,
             ]);
@@ -56,11 +56,11 @@ class ComentarioController extends Controller
             ->orderByDesc('fecha')
             ->get()
             ->map(fn ($c) => [
-                'id_comentario'     => $c->id_comentario,
-                'comentario'        => $c->comentario,
-                'fecha'             => $c->fecha,
-                'cedula_veterinario'=> $c->cedula_veterinario,
-                'veterinario'       => $c->veterinario?->nombre,
+                'id_comentario' => $c->id_comentario,
+                'comentario' => $c->comentario,
+                'fecha' => $c->fecha,
+                'cedula_veterinario' => $c->cedula_veterinario,
+                'veterinario' => $c->veterinario?->nombre,
             ]);
 
         return response()->json(['data' => $comentarios]);
@@ -81,15 +81,15 @@ class ComentarioController extends Controller
         ]);
 
         $comentario = ComentarioVeterinario::create([
-            'arete'              => $animal->arete,
+            'arete' => $animal->arete,
             'cedula_veterinario' => $usuario->cedula,
-            'comentario'         => $datos['comentario'],
-            'fecha'              => Carbon::now(),
+            'comentario' => $datos['comentario'],
+            'fecha' => Carbon::now(),
         ]);
 
         return response()->json([
             'mensaje' => 'Comentario guardado.',
-            'data'    => $comentario,
+            'data' => $comentario,
         ], 201);
     }
 
@@ -108,9 +108,13 @@ class ComentarioController extends Controller
 
     private function autorizarVer($u, Animal $animal): void
     {
-        if ($u->esAdmin()) return;
+        if ($u->esAdmin()) {
+            return;
+        }
 
-        if ($u->esGanadero() && $animal->finca->cedula === $u->cedula) return;
+        if ($u->esGanadero() && $animal->finca->cedula === $u->cedula) {
+            return;
+        }
 
         if ($u->esVeterinario()
             && $animal->finca->veterinarios()->where('Veterinario_Finca.cedula', $u->cedula)->exists()) {

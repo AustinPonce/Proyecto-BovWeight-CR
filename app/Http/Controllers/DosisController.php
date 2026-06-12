@@ -6,7 +6,6 @@ use App\Models\Animal;
 use App\Models\ComentarioVeterinario;
 use App\Models\Medicamento;
 use Carbon\Carbon;
-use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
@@ -27,10 +26,10 @@ class DosisController extends Controller
 
         if ($request->isMethod('post')) {
             $datos = $request->validate([
-                'arete'           => ['required', 'string', 'exists:Animal,arete'],
-                'id_medicamento'  => ['required', 'integer', 'exists:Medicamento,id_medicamento'],
+                'arete' => ['required', 'string', 'exists:Animal,arete'],
+                'id_medicamento' => ['required', 'integer', 'exists:Medicamento,id_medicamento'],
                 'peso_referencia' => ['nullable', 'numeric', 'min:10', 'max:3000'],
-                'comentario'      => ['nullable', 'string', 'max:1000'],
+                'comentario' => ['nullable', 'string', 'max:1000'],
             ]);
 
             $animal = Animal::with(['pesajes' => fn ($q) => $q->orderByDesc('fecha')])->find($datos['arete']);
@@ -49,20 +48,20 @@ class DosisController extends Controller
             $dosisTotal = round($medicamento->dosis_por_kg * $peso, 4);
 
             $resultado = [
-                'animal'      => $animal,
+                'animal' => $animal,
                 'medicamento' => $medicamento,
-                'peso'        => $peso,
+                'peso' => $peso,
                 'dosis_total' => $dosisTotal,
-                'formula'     => "{$medicamento->dosis_por_kg} {$medicamento->unidad}/kg × {$peso} kg = {$dosisTotal} {$medicamento->unidad}",
+                'formula' => "{$medicamento->dosis_por_kg} {$medicamento->unidad}/kg × {$peso} kg = {$dosisTotal} {$medicamento->unidad}",
             ];
 
             // Si el vet deja un comentario, guardarlo
             if ($usuario->esVeterinario() && filled($datos['comentario'])) {
                 ComentarioVeterinario::create([
-                    'arete'              => $animal->arete,
+                    'arete' => $animal->arete,
                     'cedula_veterinario' => $usuario->cedula,
-                    'comentario'         => "[Dosis {$medicamento->nombre}: {$dosisTotal} {$medicamento->unidad}]\n{$datos['comentario']}",
-                    'fecha'              => Carbon::now(),
+                    'comentario' => "[Dosis {$medicamento->nombre}: {$dosisTotal} {$medicamento->unidad}]\n{$datos['comentario']}",
+                    'fecha' => Carbon::now(),
                 ]);
             }
         }

@@ -47,6 +47,7 @@ class FotoIAWeightStrategy implements ICalculadorPeso
         // Sin imagen → mock (modo "ML no disponible").
         if (! $pathRelativo) {
             Log::warning('FotoIAWeightStrategy: no se pasó path de imagen; usando mock.');
+
             return $this->mock();
         }
 
@@ -54,6 +55,7 @@ class FotoIAWeightStrategy implements ICalculadorPeso
         $pathAbsoluto = Storage::disk('public')->path($pathRelativo);
         if (! is_file($pathAbsoluto)) {
             Log::warning("FotoIAWeightStrategy: archivo no encontrado: {$pathAbsoluto}; usando mock.");
+
             return $this->mock();
         }
 
@@ -65,9 +67,10 @@ class FotoIAWeightStrategy implements ICalculadorPeso
         try {
             $response = Http::timeout($timeout)
                 ->attach('imagen', file_get_contents($pathAbsoluto), basename($pathAbsoluto))
-                ->post($url . '/estimar', ['categoria' => $categoria]);
+                ->post($url.'/estimar', ['categoria' => $categoria]);
         } catch (\Throwable $e) {
             Log::warning("FotoIAWeightStrategy: ml_service inaccesible ({$e->getMessage()}); usando mock.");
+
             return $this->mock();
         }
 
@@ -99,6 +102,7 @@ class FotoIAWeightStrategy implements ICalculadorPeso
         if (! $response->successful()) {
             $mensaje = $response->json('error', 'desconocido');
             Log::warning("FotoIAWeightStrategy: ml_service respondió {$response->status()}: {$mensaje}; usando mock.");
+
             return $this->mock();
         }
 
@@ -106,11 +110,12 @@ class FotoIAWeightStrategy implements ICalculadorPeso
 
         if ($peso <= 0) {
             Log::warning('FotoIAWeightStrategy: ml_service devolvió peso 0 o inválido; usando mock.');
+
             return $this->mock();
         }
 
         Log::info("FotoIAWeightStrategy: estimación ML exitosa = {$peso} kg "
-            . "(confianza " . $response->json('confianza', 'n/a') . ")");
+            .'(confianza '.$response->json('confianza', 'n/a').')');
 
         return round($peso, 2);
     }

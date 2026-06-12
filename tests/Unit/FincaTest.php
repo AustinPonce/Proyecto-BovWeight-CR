@@ -6,6 +6,9 @@ use App\Models\Animal;
 use App\Models\Finca;
 use App\Models\Usuario;
 use Database\Seeders\CatalogosSeeder;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -26,10 +29,10 @@ class FincaTest extends TestCase
     private function createTestUser(int $rolId, string $cedula): Usuario
     {
         return Usuario::create([
-            'cedula'          => $cedula,
-            'nombre'          => 'Usuario ' . $cedula,
-            'correo'          => 'test_' . $cedula . '@bovweight.cr',
-            'contrasena'      => 'password123',
+            'cedula' => $cedula,
+            'nombre' => 'Usuario '.$cedula,
+            'correo' => 'test_'.$cedula.'@bovweight.cr',
+            'contrasena' => 'password123',
             'id_tipo_usuario' => $rolId,
         ]);
     }
@@ -40,9 +43,9 @@ class FincaTest extends TestCase
     private function createTestFinca(Usuario $owner, string $nombre): Finca
     {
         return Finca::create([
-            'nombre'    => $nombre,
+            'nombre' => $nombre,
             'ubicacion' => 'San Carlos, Costa Rica',
-            'cedula'    => $owner->cedula,
+            'cedula' => $owner->cedula,
         ]);
     }
 
@@ -55,7 +58,7 @@ class FincaTest extends TestCase
      */
     public function test_fillable_contiene_campos_correctos(): void
     {
-        $finca = new Finca();
+        $finca = new Finca;
 
         $this->assertEquals(['nombre', 'ubicacion', 'cedula'], $finca->getFillable());
     }
@@ -65,7 +68,7 @@ class FincaTest extends TestCase
      */
     public function test_primary_key_correcta(): void
     {
-        $finca = new Finca();
+        $finca = new Finca;
 
         $this->assertEquals('id_finca', $finca->getKeyName());
     }
@@ -83,7 +86,7 @@ class FincaTest extends TestCase
         $finca = $this->createTestFinca($ganadero, 'Finca Bella Vista');
 
         // Verificar tipo de relación
-        $this->assertInstanceOf(\Illuminate\Database\Eloquent\Relations\BelongsTo::class, $finca->usuario());
+        $this->assertInstanceOf(BelongsTo::class, $finca->usuario());
 
         // Verificar valor cargado
         $this->assertInstanceOf(Usuario::class, $finca->usuario);
@@ -99,16 +102,16 @@ class FincaTest extends TestCase
         $finca = $this->createTestFinca($ganadero, 'Finca Bella Vista');
 
         $animal = Animal::create([
-            'arete'     => 'AR-FINCA-TEST',
-            'nombre'    => 'Lola',
-            'id_raza'   => 1,
-            'id_sexo'   => 2,
+            'arete' => 'AR-FINCA-TEST',
+            'nombre' => 'Lola',
+            'id_raza' => 1,
+            'id_sexo' => 2,
             'id_estado' => 1,
-            'id_finca'  => $finca->id_finca,
+            'id_finca' => $finca->id_finca,
         ]);
 
         // Verificar tipo de relación
-        $this->assertInstanceOf(\Illuminate\Database\Eloquent\Relations\HasMany::class, $finca->animales());
+        $this->assertInstanceOf(HasMany::class, $finca->animales());
 
         // Verificar valor cargado
         $this->assertTrue($finca->animales->contains($animal));
@@ -128,7 +131,7 @@ class FincaTest extends TestCase
         $finca->veterinarios()->attach($vet->cedula);
 
         // Verificar tipo de relación
-        $this->assertInstanceOf(\Illuminate\Database\Eloquent\Relations\BelongsToMany::class, $finca->veterinarios());
+        $this->assertInstanceOf(BelongsToMany::class, $finca->veterinarios());
 
         // Verificar valor cargado
         $this->assertTrue($finca->veterinarios->contains($vet));

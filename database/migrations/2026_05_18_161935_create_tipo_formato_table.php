@@ -11,10 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
-       Schema::create('Tipo_Formato', function (Blueprint $table) {
-    $table->integer('id_Tipo_Formato')->autoIncrement();
-    $table->string('tipo', 30);
-});
+        Schema::create('Tipo_Formato', function (Blueprint $table) {
+            $table->integer('id_Tipo_Formato')->autoIncrement();
+            $table->string('tipo', 30);
+        });
     }
 
     /**

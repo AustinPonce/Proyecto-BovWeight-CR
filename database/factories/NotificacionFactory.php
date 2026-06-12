@@ -22,12 +22,12 @@ class NotificacionFactory extends Factory
     public function definition(): array
     {
         return [
-            'mensaje'         => fake()->randomElement([
+            'mensaje' => fake()->randomElement([
                 'Es momento de volver a pesar a tu animal.',
                 'Recordatorio: registra el pesaje mensual de tus terneros.',
                 'Han pasado 30 días desde el último pesaje de este animal.',
             ]),
-            'fecha_envio'     => fake()->dateTimeBetween('-1 month', '+1 month'),
+            'fecha_envio' => fake()->dateTimeBetween('-1 month', '+1 month'),
             'id_recordatorio' => Recordatorio::factory(),
         ];
     }

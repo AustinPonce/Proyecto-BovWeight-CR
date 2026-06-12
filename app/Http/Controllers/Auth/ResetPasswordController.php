@@ -8,7 +8,6 @@ use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
 use Illuminate\Validation\Rules\Password;
 use Illuminate\View\View;
 
@@ -17,7 +16,7 @@ class ResetPasswordController extends Controller
     public function mostrar(Request $request, string $token): View
     {
         return view('auth.passwords.reset', [
-            'token'  => $token,
+            'token' => $token,
             'correo' => $request->query('correo', ''),
         ]);
     }
@@ -25,8 +24,8 @@ class ResetPasswordController extends Controller
     public function resetear(Request $request): RedirectResponse
     {
         $request->validate([
-            'correo'     => ['required', 'email'],
-            'token'      => ['required', 'string'],
+            'correo' => ['required', 'email'],
+            'token' => ['required', 'string'],
             'contrasena' => ['required', 'confirmed', Password::min(8)->mixedCase()->symbols()],
         ]);
 

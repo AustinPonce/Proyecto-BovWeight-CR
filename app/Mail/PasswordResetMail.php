@@ -20,7 +20,7 @@ class PasswordResetMail extends Mailable
         string $token
     ) {
         $this->resetUrl = url(route('password.reset', [
-            'token'  => $token,
+            'token' => $token,
             'correo' => $usuario->correo,
         ], false));
     }

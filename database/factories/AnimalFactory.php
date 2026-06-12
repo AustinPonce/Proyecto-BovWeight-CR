@@ -30,13 +30,13 @@ class AnimalFactory extends Factory
     public function definition(): array
     {
         return [
-            'arete'     => fake()->unique()->numerify('CR-#########'),
-            'nombre'    => fake()->boolean(30) ? fake()->firstName() : null,
-            'id_raza'   => Raza::query()->inRandomOrder()->value('id_raza') ?? Raza::factory(),
-            'id_sexo'   => Sexo::query()->inRandomOrder()->value('id_sexo') ?? Sexo::factory(),
+            'arete' => fake()->unique()->numerify('CR-#########'),
+            'nombre' => fake()->boolean(30) ? fake()->firstName() : null,
+            'id_raza' => Raza::query()->inRandomOrder()->value('id_raza') ?? Raza::factory(),
+            'id_sexo' => Sexo::query()->inRandomOrder()->value('id_sexo') ?? Sexo::factory(),
             'id_estado' => Estado::query()->where('estado', 'Activo')->value('id_estado')
                 ?? Estado::factory()->activo(),
-            'id_finca'  => Finca::factory(),
+            'id_finca' => Finca::factory(),
         ];
     }
 

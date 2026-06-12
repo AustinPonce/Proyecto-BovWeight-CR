@@ -3,9 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Animal;
-use App\Models\Notificacion;
 use App\Models\Recordatorio;
-use Carbon\Carbon;
 use Illuminate\Http\Request;
 
 /**
@@ -41,13 +39,13 @@ class RecordatorioController extends Controller
         $this->authorize_acceso($animal);
 
         $datos = $request->validate([
-            'frecuencia'   => ['required', 'in:semanal,quincenal,mensual,trimestral'],
+            'frecuencia' => ['required', 'in:semanal,quincenal,mensual,trimestral'],
             'fecha_inicio' => ['required', 'date', 'date_format:Y-m-d'],
         ], [
-            'frecuencia.required'   => 'Seleccioná una frecuencia.',
-            'frecuencia.in'         => 'Frecuencia no válida.',
+            'frecuencia.required' => 'Seleccioná una frecuencia.',
+            'frecuencia.in' => 'Frecuencia no válida.',
             'fecha_inicio.required' => 'Ingresá la fecha de inicio.',
-            'fecha_inicio.date'     => 'La fecha de inicio no es válida.',
+            'fecha_inicio.date' => 'La fecha de inicio no es válida.',
         ]);
 
         $datos['arete'] = $animal->arete;
@@ -93,6 +91,7 @@ class RecordatorioController extends Controller
                 403,
                 'No tenés permiso para gestionar este animal.'
             );
+
             return;
         }
 

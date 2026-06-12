@@ -3,8 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\AnimalRequest;
-use App\Models\Auditoria;
 use App\Models\Animal;
+use App\Models\Auditoria;
 use App\Models\Estado;
 use App\Models\Finca;
 use App\Models\Raza;
@@ -52,7 +52,7 @@ class AnimalController extends Controller
             $term = $request->input('buscar');
             $query->where(function ($q) use ($term) {
                 $q->where('arete', 'like', "%{$term}%")
-                  ->orWhere('nombre', 'like', "%{$term}%");
+                    ->orWhere('nombre', 'like', "%{$term}%");
             });
         }
 
@@ -67,7 +67,7 @@ class AnimalController extends Controller
             ? Finca::find($request->finca)
             : null;
 
-        $estados = \App\Models\Estado::orderBy('estado')->get();
+        $estados = Estado::orderBy('estado')->get();
 
         return view('animales.index', compact('animales', 'fincaSeleccionada', 'estados'));
     }
@@ -80,11 +80,11 @@ class AnimalController extends Controller
         $fincas = $this->fincasVisibles()->get();
 
         return view('animales.create', [
-            'fincas'           => $fincas,
-            'razas'            => Raza::orderBy('raza')->get(),
-            'sexos'            => Sexo::orderBy('sexo')->get(),
-            'estados'          => Estado::orderBy('estado')->get(),
-            'fincaSeleccionada'=> $request->finca, // para preseleccionar en el form
+            'fincas' => $fincas,
+            'razas' => Raza::orderBy('raza')->get(),
+            'sexos' => Sexo::orderBy('sexo')->get(),
+            'estados' => Estado::orderBy('estado')->get(),
+            'fincaSeleccionada' => $request->finca, // para preseleccionar en el form
         ]);
     }
 
@@ -103,9 +103,9 @@ class AnimalController extends Controller
 
         // RF21 — Auditoría.
         AuditoriaService::registrar(
-            accion:       Auditoria::ACCION_CREAR,
-            modulo:       Auditoria::MODULO_ANIMALES,
-            descripcion:  "Animal '{$animal->arete}' ({$animal->nombre}) creado en finca ID {$animal->id_finca}.",
+            accion: Auditoria::ACCION_CREAR,
+            modulo: Auditoria::MODULO_ANIMALES,
+            descripcion: "Animal '{$animal->arete}' ({$animal->nombre}) creado en finca ID {$animal->id_finca}.",
             datosDespues: $animal->toArray(),
         );
 
@@ -137,10 +137,10 @@ class AnimalController extends Controller
         $this->autorizarEdicion($animal);
 
         return view('animales.edit', [
-            'animal'  => $animal,
-            'fincas'  => $this->fincasVisibles()->get(),
-            'razas'   => Raza::orderBy('raza')->get(),
-            'sexos'   => Sexo::orderBy('sexo')->get(),
+            'animal' => $animal,
+            'fincas' => $this->fincasVisibles()->get(),
+            'razas' => Raza::orderBy('raza')->get(),
+            'sexos' => Sexo::orderBy('sexo')->get(),
             'estados' => Estado::orderBy('estado')->get(),
         ]);
     }
@@ -163,10 +163,10 @@ class AnimalController extends Controller
 
         // RF21 — Auditoría.
         AuditoriaService::registrar(
-            accion:       Auditoria::ACCION_ACTUALIZAR,
-            modulo:       Auditoria::MODULO_ANIMALES,
-            descripcion:  "Animal '{$animal->arete}' actualizado.",
-            datosAntes:   $original,
+            accion: Auditoria::ACCION_ACTUALIZAR,
+            modulo: Auditoria::MODULO_ANIMALES,
+            descripcion: "Animal '{$animal->arete}' actualizado.",
+            datosAntes: $original,
             datosDespues: $animal->toArray(),
         );
 
@@ -182,16 +182,16 @@ class AnimalController extends Controller
     {
         $this->autorizarEdicion($animal);
 
-        $idFinca  = $animal->id_finca;
+        $idFinca = $animal->id_finca;
         $snapshot = $animal->toArray();
         $animal->delete();
 
         // RF21 — Auditoría.
         AuditoriaService::registrar(
-            accion:      Auditoria::ACCION_ELIMINAR,
-            modulo:      Auditoria::MODULO_ANIMALES,
+            accion: Auditoria::ACCION_ELIMINAR,
+            modulo: Auditoria::MODULO_ANIMALES,
             descripcion: "Animal '{$snapshot['arete']}' eliminado.",
-            datosAntes:  $snapshot,
+            datosAntes: $snapshot,
         );
 
         return redirect()
@@ -217,8 +217,7 @@ class AnimalController extends Controller
         if ($u->esGanadero()) {
             $q->where('cedula', $u->cedula);
         } elseif ($u->esVeterinario()) {
-            $q->whereHas('veterinarios', fn ($vq) =>
-                $vq->where('Veterinario_Finca.cedula', $u->cedula)
+            $q->whereHas('veterinarios', fn ($vq) => $vq->where('Veterinario_Finca.cedula', $u->cedula)
             );
         }
         // Admin: no filtra — todas.

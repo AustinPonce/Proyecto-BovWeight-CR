@@ -26,9 +26,9 @@ class RoleMiddleware
      * Centralizado aquí para no repetir números mágicos en las rutas.
      */
     private const MAPA_ROLES = [
-        'admin'        => Usuario::ROL_ADMIN,
-        'ganadero'     => Usuario::ROL_GANADERO,
-        'veterinario'  => Usuario::ROL_VETERINARIO,
+        'admin' => Usuario::ROL_ADMIN,
+        'ganadero' => Usuario::ROL_GANADERO,
+        'veterinario' => Usuario::ROL_VETERINARIO,
     ];
 
     public function handle(Request $request, Closure $next, string ...$rolesPermitidos): Response

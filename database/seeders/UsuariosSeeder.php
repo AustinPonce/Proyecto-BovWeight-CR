@@ -28,26 +28,26 @@ class UsuariosSeeder extends Seeder
         $contrasenaComun = 'bovweight2026';
 
         Usuario::create([
-            'cedula'          => '100000001',
-            'nombre'          => 'Admin de Prueba',
-            'correo'          => 'admin@bovweight.cr',
-            'contrasena'      => $contrasenaComun,
+            'cedula' => '100000001',
+            'nombre' => 'Admin de Prueba',
+            'correo' => 'admin@bovweight.cr',
+            'contrasena' => $contrasenaComun,
             'id_tipo_usuario' => Usuario::ROL_ADMIN,
         ]);
 
         Usuario::create([
-            'cedula'          => '100000002',
-            'nombre'          => 'Ganadero de Prueba',
-            'correo'          => 'ganadero@bovweight.cr',
-            'contrasena'      => $contrasenaComu,
+            'cedula' => '100000002',
+            'nombre' => 'Ganadero de Prueba',
+            'correo' => 'ganadero@bovweight.cr',
+            'contrasena' => $contrasenaComu,
             'id_tipo_usuario' => Usuario::ROL_GANADERO,
         ]);
 
         Usuario::create([
-            'cedula'          => '100000003',
-            'nombre'          => 'Veterinario de Prueba',
-            'correo'          => 'vet@bovweight.cr',
-            'contrasena'      => $contrasenaComun,
+            'cedula' => '100000003',
+            'nombre' => 'Veterinario de Prueba',
+            'correo' => 'vet@bovweight.cr',
+            'contrasena' => $contrasenaComun,
             'id_tipo_usuario' => Usuario::ROL_VETERINARIO,
         ]);
     }

@@ -12,13 +12,13 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('Finca', function (Blueprint $table) {
-    $table->integer('id_finca')->autoIncrement();
-    $table->string('nombre', 100);
-    $table->string('ubicacion', 255);
-    $table->string('cedula', 20);
+            $table->integer('id_finca')->autoIncrement();
+            $table->string('nombre', 100);
+            $table->string('ubicacion', 255);
+            $table->string('cedula', 20);
 
-    $table->foreign('cedula')->references('cedula')->on('Usuario')->onDelete('restrict')->onUpdate('cascade');
-});
+            $table->foreign('cedula')->references('cedula')->on('Usuario')->onDelete('restrict')->onUpdate('cascade');
+        });
     }
 
     /**

@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use App\Factories\ReporteFactory;
+use Illuminate\Http\Request;
 
 /**
  * Cliente del patrón Factory Method.
@@ -32,14 +32,14 @@ class ReporteController extends Controller
             [
                 'animal' => 'CR-001',
                 'peso' => 450,
-                'fecha' => now()
+                'fecha' => now(),
             ],
 
             [
                 'animal' => 'CR-002',
                 'peso' => 390,
-                'fecha' => now()
-            ]
+                'fecha' => now(),
+            ],
 
         ];
 

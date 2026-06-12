@@ -40,7 +40,7 @@ class FincaRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'nombre'    => ['required', 'string', 'max:100'],
+            'nombre' => ['required', 'string', 'max:100'],
             'ubicacion' => ['required', 'string', 'max:255'],
         ];
     }
@@ -51,10 +51,10 @@ class FincaRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'nombre.required'    => 'El nombre de la finca es obligatorio.',
-            'nombre.max'         => 'El nombre no puede tener más de 100 caracteres.',
+            'nombre.required' => 'El nombre de la finca es obligatorio.',
+            'nombre.max' => 'El nombre no puede tener más de 100 caracteres.',
             'ubicacion.required' => 'La ubicación es obligatoria.',
-            'ubicacion.max'      => 'La ubicación no puede tener más de 255 caracteres.',
+            'ubicacion.max' => 'La ubicación no puede tener más de 255 caracteres.',
         ];
     }
 }

@@ -35,9 +35,9 @@ return new class extends Migration
             // auditamos intentos fallidos de login (sin sesión activa).
             $table->string('cedula_usuario', 20)->nullable();
             $table->foreign('cedula_usuario')
-                  ->references('cedula')
-                  ->on('Usuario')
-                  ->onDelete('set null');
+                ->references('cedula')
+                ->on('Usuario')
+                ->onDelete('set null');
 
             $table->string('accion', 80);         // ej. 'login', 'crear_finca', 'eliminar_animal'
             $table->string('modulo', 50);          // ej. 'auth', 'fincas', 'animales', 'pesajes'

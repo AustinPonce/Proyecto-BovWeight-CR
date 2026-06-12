@@ -6,8 +6,8 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
  * Modelo Finca — propiedad de un Usuario (Ganadero).
@@ -24,7 +24,9 @@ class Finca extends Model
     use HasFactory;
 
     protected $table = 'Finca';
+
     protected $primaryKey = 'id_finca';
+
     public $timestamps = false;
 
     protected $fillable = ['nombre', 'ubicacion', 'cedula'];
@@ -86,8 +88,7 @@ class Finca extends Model
         }
 
         if ($usuario->esVeterinario()) {
-            return $query->whereHas('veterinarios', fn ($q) =>
-                $q->where('Veterinario_Finca.cedula', $usuario->cedula)
+            return $query->whereHas('veterinarios', fn ($q) => $q->where('Veterinario_Finca.cedula', $usuario->cedula)
             );
         }
 

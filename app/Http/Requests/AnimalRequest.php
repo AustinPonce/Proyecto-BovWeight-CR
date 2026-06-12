@@ -43,25 +43,25 @@ class AnimalRequest extends FormRequest
                 ? ['nullable']
                 : ['required', 'string', 'max:30', 'unique:Animal,arete'],
 
-            'nombre'    => ['nullable', 'string', 'max:50'],
-            'id_raza'   => ['required', 'integer', Rule::exists('Raza', 'id_raza')],
-            'id_sexo'   => ['required', 'integer', Rule::exists('Sexo', 'id_sexo')],
+            'nombre' => ['nullable', 'string', 'max:50'],
+            'id_raza' => ['required', 'integer', Rule::exists('Raza', 'id_raza')],
+            'id_sexo' => ['required', 'integer', Rule::exists('Sexo', 'id_sexo')],
             'id_estado' => ['required', 'integer', Rule::exists('Estado', 'id_estado')],
-            'id_finca'  => ['required', 'integer', Rule::exists('Finca', 'id_finca')],
+            'id_finca' => ['required', 'integer', Rule::exists('Finca', 'id_finca')],
         ];
     }
 
     public function messages(): array
     {
         return [
-            'arete.required'    => 'El número de arete es obligatorio.',
-            'arete.unique'      => 'Ya hay un animal registrado con ese arete.',
-            'arete.max'         => 'El arete no puede tener más de 30 caracteres.',
-            'id_raza.required'  => 'Seleccioná una raza.',
-            'id_sexo.required'  => 'Seleccioná el sexo.',
-            'id_estado.required'=> 'Seleccioná el estado.',
+            'arete.required' => 'El número de arete es obligatorio.',
+            'arete.unique' => 'Ya hay un animal registrado con ese arete.',
+            'arete.max' => 'El arete no puede tener más de 30 caracteres.',
+            'id_raza.required' => 'Seleccioná una raza.',
+            'id_sexo.required' => 'Seleccioná el sexo.',
+            'id_estado.required' => 'Seleccioná el estado.',
             'id_finca.required' => 'Seleccioná la finca a la que pertenece.',
-            'id_finca.exists'   => 'La finca seleccionada no existe.',
+            'id_finca.exists' => 'La finca seleccionada no existe.',
         ];
     }
 }

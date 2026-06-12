@@ -24,7 +24,7 @@ class ReporteFactory extends Factory
     {
         return [
             'fecha_generacion' => fake()->dateTimeBetween('-3 months', 'now'),
-            'id_Tipo_Formato'  => TipoFormato::query()->inRandomOrder()->value('id_Tipo_Formato')
+            'id_Tipo_Formato' => TipoFormato::query()->inRandomOrder()->value('id_Tipo_Formato')
                 ?? TipoFormato::factory(),
         ];
     }

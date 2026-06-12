@@ -8,7 +8,9 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class Transaccion extends Model
 {
     protected $table = 'Transaccion';
+
     protected $primaryKey = 'id_transaccion';
+
     public $timestamps = false;
 
     protected $fillable = [

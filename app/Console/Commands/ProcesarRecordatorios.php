@@ -24,29 +24,30 @@ use Illuminate\Support\Facades\Log;
  */
 class ProcesarRecordatorios extends Command
 {
-    protected $signature   = 'recordatorios:procesar';
+    protected $signature = 'recordatorios:procesar';
+
     protected $description = 'Genera notificaciones para los recordatorios de re-pesaje vencidos (RF22)';
 
     public function handle(): int
     {
-        $hoy         = Carbon::today();
+        $hoy = Carbon::today();
         $recordatorios = Recordatorio::with('animal.finca')->get();
-        $procesados  = 0;
+        $procesados = 0;
 
         foreach ($recordatorios as $rec) {
             if (! $rec->estaVencido()) {
                 continue;
             }
 
-            $animal   = $rec->animal;
-            $nombre   = $animal->nombre ? "\"{$animal->nombre}\"" : "arete {$animal->arete}";
-            $finca    = $animal->finca->nombre ?? 'finca desconocida';
+            $animal = $rec->animal;
+            $nombre = $animal->nombre ? "\"{$animal->nombre}\"" : "arete {$animal->arete}";
+            $finca = $animal->finca->nombre ?? 'finca desconocida';
 
             // Crear la notificación
             Notificacion::create([
-                'mensaje'         => "Recordatorio: es momento de volver a pesar al animal {$nombre} de {$finca}. "
-                                   . "Frecuencia configurada: {$rec->frecuencia}.",
-                'fecha_envio'     => Carbon::now(),
+                'mensaje' => "Recordatorio: es momento de volver a pesar al animal {$nombre} de {$finca}. "
+                                   ."Frecuencia configurada: {$rec->frecuencia}.",
+                'fecha_envio' => Carbon::now(),
                 'id_recordatorio' => $rec->id_recordatorio,
             ]);
 
@@ -57,7 +58,7 @@ class ProcesarRecordatorios extends Command
             $procesados++;
 
             Log::info("RecordatoriosProcesar: notificación creada para animal {$animal->arete} "
-                . "(recordatorio #{$rec->id_recordatorio}, frecuencia: {$rec->frecuencia}).");
+                ."(recordatorio #{$rec->id_recordatorio}, frecuencia: {$rec->frecuencia}).");
 
             $this->line("  ✓ Animal {$animal->arete} — {$rec->frecuencia}");
         }

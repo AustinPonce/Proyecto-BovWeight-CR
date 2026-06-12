@@ -29,13 +29,14 @@ class CrearNotificacionObserver
 
         if (! $idRecordatorio) {
             Log::info("Pesaje {$pesaje->id_pesaje} creado pero no hay Recordatorio "
-                . "para arete {$pesaje->arete} — notificación omitida.");
+                ."para arete {$pesaje->arete} — notificación omitida.");
+
             return;
         }
 
         DB::table('Notificacion')->insert([
-            'mensaje'         => "Se ha registrado un nuevo pesaje para el animal con arete: {$pesaje->arete}.",
-            'fecha_envio'     => Carbon::now(),
+            'mensaje' => "Se ha registrado un nuevo pesaje para el animal con arete: {$pesaje->arete}.",
+            'fecha_envio' => Carbon::now(),
             'id_recordatorio' => $idRecordatorio,
         ]);
     }

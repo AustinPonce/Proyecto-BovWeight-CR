@@ -2,13 +2,13 @@
 
 namespace App\Exports;
 
+use Carbon\Carbon;
 use Maatwebsite\Excel\Concerns\FromCollection;
+use Maatwebsite\Excel\Concerns\ShouldAutoSize;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
 use Maatwebsite\Excel\Concerns\WithStyles;
-use Maatwebsite\Excel\Concerns\ShouldAutoSize;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
-use Carbon\Carbon;
 
 /**
  * RF25 — Exportación de pesajes a Excel (.xlsx).
@@ -20,12 +20,7 @@ use Carbon\Carbon;
  *   ShouldAutoSize  → ajusta ancho de columnas automáticamente.
  *   WithStyles      → aplica estilos (negrita en encabezados, color verde BovWeight).
  */
-class PesajesExport implements
-    FromCollection,
-    WithHeadings,
-    WithMapping,
-    ShouldAutoSize,
-    WithStyles
+class PesajesExport implements FromCollection, ShouldAutoSize, WithHeadings, WithMapping, WithStyles
 {
     public function __construct(
         protected $pesajes
@@ -67,8 +62,8 @@ class PesajesExport implements
         return [
             // Fila 1 = encabezados: negrita + fondo verde BovWeight
             1 => [
-                'font'      => ['bold' => true, 'color' => ['argb' => 'FFFFFFFF']],
-                'fill'      => ['fillType' => 'solid', 'startColor' => ['argb' => 'FF065F46']],
+                'font' => ['bold' => true, 'color' => ['argb' => 'FFFFFFFF']],
+                'fill' => ['fillType' => 'solid', 'startColor' => ['argb' => 'FF065F46']],
             ],
         ];
     }

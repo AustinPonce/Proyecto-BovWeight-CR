@@ -70,16 +70,16 @@ class PesajeController extends Controller
 
         // Strategy.
         $strategy = $this->resolverStrategy($datos['tipo']);
-        $context  = new CalculadorPesoContext($strategy);
+        $context = new CalculadorPesoContext($strategy);
 
         $datosCalculo = $datos['tipo'] === 'manual'
             ? [
-                'largo_cuerpo'       => (float) $datos['largo_cuerpo'],
-                'altura'             => (float) $datos['altura'],
+                'largo_cuerpo' => (float) $datos['largo_cuerpo'],
+                'altura' => (float) $datos['altura'],
                 'perimetro_toracico' => (float) $datos['perimetro_toracico'],
             ]
             : [
-                'imagen'    => $pathImagen,
+                'imagen' => $pathImagen,
                 'categoria' => $datos['tipo_animal'] ?? 'auto',
             ];
 
@@ -90,6 +90,7 @@ class PesajeController extends Controller
             if ($pathImagen) {
                 Storage::disk('public')->delete($pathImagen);
             }
+
             return response()->json([
                 'mensaje' => $e->mensajeUsuario,
                 'detalles' => $e->detalles,
@@ -97,19 +98,19 @@ class PesajeController extends Controller
         }
 
         // RF13 — Factor de corrección por raza.
-        $animal        = Animal::with('raza')->whereKey($datos['arete'])->first();
-        $factorRaza    = (float) ($animal->raza->factor_correccion ?? 1.0);
+        $animal = Animal::with('raza')->whereKey($datos['arete'])->first();
+        $factorRaza = (float) ($animal->raza->factor_correccion ?? 1.0);
         $pesoCorregido = round($pesoOriginal * $factorRaza, 2);
 
         $pesaje = Pesaje::create([
-            'fecha'          => Carbon::now(),
-            'peso'           => $pesoCorregido,
-            'peso_original'  => round($pesoOriginal, 2),
-            'factor_raza'    => $factorRaza,
+            'fecha' => Carbon::now(),
+            'peso' => $pesoCorregido,
+            'peso_original' => round($pesoOriginal, 2),
+            'factor_raza' => $factorRaza,
             'peso_corregido' => $pesoCorregido,
-            'imagen'         => $pathImagen,
-            'sincronizado'   => 1,
-            'arete'          => $datos['arete'],
+            'imagen' => $pathImagen,
+            'sincronizado' => 1,
+            'arete' => $datos['arete'],
             'id_tipo_pesaje' => $this->resolverTipoPesajeId($datos['tipo']),
         ]);
 
@@ -147,8 +148,8 @@ class PesajeController extends Controller
     private function resolverStrategy(string $tipo): ICalculadorPeso
     {
         return match ($tipo) {
-            'manual' => new FormulaManualStrategy(),
-            'foto'   => new FotoIAWeightStrategy(),
+            'manual' => new FormulaManualStrategy,
+            'foto' => new FotoIAWeightStrategy,
         };
     }
 

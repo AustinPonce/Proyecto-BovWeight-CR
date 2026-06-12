@@ -76,6 +76,7 @@ def _get_modelo():
         logger.info("Modelo listo. Clases conocidas: %d", len(_modelo.names))
     return _modelo
 
+
 # --------------------------------------------------------------------------- #
 # App Flask
 # --------------------------------------------------------------------------- #
@@ -214,7 +215,7 @@ def _clasificar_etapa(bbox, categoria_hint: str = 'auto') -> str:
     # Ternero → bbox más cuadrado; adulto → más elongado horizontalmente.
     x1, y1, x2, y2 = bbox
     ancho = max(0.0, x2 - x1)
-    alto  = max(0.0, y2 - y1)
+    alto = max(0.0, y2 - y1)
     ar = ancho / max(alto, 1.0)
 
     if ar <= 1.30:

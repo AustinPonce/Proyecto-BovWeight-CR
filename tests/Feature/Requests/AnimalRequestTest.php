@@ -26,10 +26,10 @@ class AnimalRequestTest extends TestCase
     private function createTestUser(int $rolId, string $cedula): Usuario
     {
         return Usuario::create([
-            'cedula'          => $cedula,
-            'nombre'          => 'Usuario Test ' . $cedula,
-            'correo'          => 'test_' . $cedula . '@bovweight.cr',
-            'contrasena'      => 'bovweight2026',
+            'cedula' => $cedula,
+            'nombre' => 'Usuario Test '.$cedula,
+            'correo' => 'test_'.$cedula.'@bovweight.cr',
+            'contrasena' => 'bovweight2026',
             'id_tipo_usuario' => $rolId,
         ]);
     }
@@ -40,9 +40,9 @@ class AnimalRequestTest extends TestCase
     private function createTestFinca(Usuario $owner): Finca
     {
         return Finca::create([
-            'nombre'    => 'Finca de Prueba',
+            'nombre' => 'Finca de Prueba',
             'ubicacion' => 'San Carlos, Alajuela',
-            'cedula'    => $owner->cedula,
+            'cedula' => $owner->cedula,
         ]);
     }
 
@@ -59,12 +59,12 @@ class AnimalRequestTest extends TestCase
         $finca = $this->createTestFinca($admin);
 
         $data = [
-            'arete'     => 'AR-ADMIN-01',
-            'nombre'    => 'Lola Admin',
-            'id_raza'   => 1, // Brahman (existente por seeder)
-            'id_sexo'   => 1, // Macho (existente por seeder)
+            'arete' => 'AR-ADMIN-01',
+            'nombre' => 'Lola Admin',
+            'id_raza' => 1, // Brahman (existente por seeder)
+            'id_sexo' => 1, // Macho (existente por seeder)
             'id_estado' => 1, // Activo (existente por seeder)
-            'id_finca'  => $finca->id_finca,
+            'id_finca' => $finca->id_finca,
         ];
 
         $response = $this->actingAs($admin, 'sanctum')
@@ -83,12 +83,12 @@ class AnimalRequestTest extends TestCase
         $finca = $this->createTestFinca($ganadero);
 
         $data = [
-            'arete'     => 'AR-GANADERO-01',
-            'nombre'    => 'Lola Ganadero',
-            'id_raza'   => 1,
-            'id_sexo'   => 2, // Hembra
+            'arete' => 'AR-GANADERO-01',
+            'nombre' => 'Lola Ganadero',
+            'id_raza' => 1,
+            'id_sexo' => 2, // Hembra
             'id_estado' => 1,
-            'id_finca'  => $finca->id_finca,
+            'id_finca' => $finca->id_finca,
         ];
 
         $response = $this->actingAs($ganadero, 'sanctum')
@@ -108,12 +108,12 @@ class AnimalRequestTest extends TestCase
         $finca = $this->createTestFinca($ganadero);
 
         $data = [
-            'arete'     => 'AR-VET-01',
-            'nombre'    => 'Lola Vet',
-            'id_raza'   => 1,
-            'id_sexo'   => 2,
+            'arete' => 'AR-VET-01',
+            'nombre' => 'Lola Vet',
+            'id_raza' => 1,
+            'id_sexo' => 2,
             'id_estado' => 1,
-            'id_finca'  => $finca->id_finca,
+            'id_finca' => $finca->id_finca,
         ];
 
         $response = $this->actingAs($vet, 'sanctum')
@@ -129,12 +129,12 @@ class AnimalRequestTest extends TestCase
     public function test_invitado_no_autorizado_para_crear_animal(): void
     {
         $data = [
-            'arete'     => 'AR-GUEST-01',
-            'nombre'    => 'Lola Guest',
-            'id_raza'   => 1,
-            'id_sexo'   => 2,
+            'arete' => 'AR-GUEST-01',
+            'nombre' => 'Lola Guest',
+            'id_raza' => 1,
+            'id_sexo' => 2,
             'id_estado' => 1,
-            'id_finca'  => 1,
+            'id_finca' => 1,
         ];
 
         $response = $this->postJson('/api/animales', $data);
@@ -155,12 +155,12 @@ class AnimalRequestTest extends TestCase
         $finca = $this->createTestFinca($admin);
 
         $data = [
-            'arete'     => '', // vacío
-            'nombre'    => 'Sin Arete',
-            'id_raza'   => 1,
-            'id_sexo'   => 1,
+            'arete' => '', // vacío
+            'nombre' => 'Sin Arete',
+            'id_raza' => 1,
+            'id_sexo' => 1,
             'id_estado' => 1,
-            'id_finca'  => $finca->id_finca,
+            'id_finca' => $finca->id_finca,
         ];
 
         $response = $this->actingAs($admin, 'sanctum')
@@ -180,21 +180,21 @@ class AnimalRequestTest extends TestCase
 
         // Crear animal previo
         Animal::create([
-            'arete'     => 'AR-DUPLICADO',
-            'nombre'    => 'Primero',
-            'id_raza'   => 1,
-            'id_sexo'   => 1,
+            'arete' => 'AR-DUPLICADO',
+            'nombre' => 'Primero',
+            'id_raza' => 1,
+            'id_sexo' => 1,
             'id_estado' => 1,
-            'id_finca'  => $finca->id_finca,
+            'id_finca' => $finca->id_finca,
         ]);
 
         $data = [
-            'arete'     => 'AR-DUPLICADO', // Valor duplicado
-            'nombre'    => 'Segundo',
-            'id_raza'   => 1,
-            'id_sexo'   => 1,
+            'arete' => 'AR-DUPLICADO', // Valor duplicado
+            'nombre' => 'Segundo',
+            'id_raza' => 1,
+            'id_sexo' => 1,
             'id_estado' => 1,
-            'id_finca'  => $finca->id_finca,
+            'id_finca' => $finca->id_finca,
         ];
 
         $response = $this->actingAs($admin, 'sanctum')
@@ -213,12 +213,12 @@ class AnimalRequestTest extends TestCase
         $finca = $this->createTestFinca($admin);
 
         $data = [
-            'arete'     => str_repeat('X', 31), // 31 caracteres
-            'nombre'    => 'Arete Largo',
-            'id_raza'   => 1,
-            'id_sexo'   => 1,
+            'arete' => str_repeat('X', 31), // 31 caracteres
+            'nombre' => 'Arete Largo',
+            'id_raza' => 1,
+            'id_sexo' => 1,
             'id_estado' => 1,
-            'id_finca'  => $finca->id_finca,
+            'id_finca' => $finca->id_finca,
         ];
 
         $response = $this->actingAs($admin, 'sanctum')
@@ -236,12 +236,12 @@ class AnimalRequestTest extends TestCase
         $admin = $this->createTestUser(Usuario::ROL_ADMIN, '100000001');
 
         $data = [
-            'arete'     => 'AR-VALID-01',
-            'nombre'    => 'Lola Test',
-            'id_raza'   => null,
-            'id_sexo'   => null,
+            'arete' => 'AR-VALID-01',
+            'nombre' => 'Lola Test',
+            'id_raza' => null,
+            'id_sexo' => null,
             'id_estado' => null,
-            'id_finca'  => null,
+            'id_finca' => null,
         ];
 
         $response = $this->actingAs($admin, 'sanctum')
@@ -264,12 +264,12 @@ class AnimalRequestTest extends TestCase
         $finca = $this->createTestFinca($admin);
 
         $data = [
-            'arete'     => 'AR-RAZA-999',
-            'nombre'    => 'Lola Raza Invalida',
-            'id_raza'   => 999, // Raza inexistente
-            'id_sexo'   => 1,
+            'arete' => 'AR-RAZA-999',
+            'nombre' => 'Lola Raza Invalida',
+            'id_raza' => 999, // Raza inexistente
+            'id_sexo' => 1,
             'id_estado' => 1,
-            'id_finca'  => $finca->id_finca,
+            'id_finca' => $finca->id_finca,
         ];
 
         $response = $this->actingAs($admin, 'sanctum')
@@ -288,12 +288,12 @@ class AnimalRequestTest extends TestCase
         $finca = $this->createTestFinca($admin);
 
         $data = [
-            'arete'     => 'AR-SEXO-999',
-            'nombre'    => 'Lola Sexo Invalida',
-            'id_raza'   => 1,
-            'id_sexo'   => 999, // Sexo inexistente
+            'arete' => 'AR-SEXO-999',
+            'nombre' => 'Lola Sexo Invalida',
+            'id_raza' => 1,
+            'id_sexo' => 999, // Sexo inexistente
             'id_estado' => 1,
-            'id_finca'  => $finca->id_finca,
+            'id_finca' => $finca->id_finca,
         ];
 
         $response = $this->actingAs($admin, 'sanctum')
@@ -312,12 +312,12 @@ class AnimalRequestTest extends TestCase
         $finca = $this->createTestFinca($admin);
 
         $data = [
-            'arete'     => 'AR-ESTADO-999',
-            'nombre'    => 'Lola Estado Invalida',
-            'id_raza'   => 1,
-            'id_sexo'   => 1,
+            'arete' => 'AR-ESTADO-999',
+            'nombre' => 'Lola Estado Invalida',
+            'id_raza' => 1,
+            'id_sexo' => 1,
             'id_estado' => 999, // Estado inexistente
-            'id_finca'  => $finca->id_finca,
+            'id_finca' => $finca->id_finca,
         ];
 
         $response = $this->actingAs($admin, 'sanctum')
@@ -335,12 +335,12 @@ class AnimalRequestTest extends TestCase
         $admin = $this->createTestUser(Usuario::ROL_ADMIN, '100000001');
 
         $data = [
-            'arete'     => 'AR-FINCA-999',
-            'nombre'    => 'Lola Finca Invalida',
-            'id_raza'   => 1,
-            'id_sexo'   => 1,
+            'arete' => 'AR-FINCA-999',
+            'nombre' => 'Lola Finca Invalida',
+            'id_raza' => 1,
+            'id_sexo' => 1,
             'id_estado' => 1,
-            'id_finca'  => 999, // Finca inexistente
+            'id_finca' => 999, // Finca inexistente
         ];
 
         $response = $this->actingAs($admin, 'sanctum')

@@ -25,7 +25,7 @@ class VeterinarioFincaController extends Controller
         $vets = Usuario::where('id_tipo_usuario', Usuario::ROL_VETERINARIO)
             ->where(function ($q) use ($term) {
                 $q->where('nombre', 'like', "%{$term}%")
-                  ->orWhere('cedula', 'like', "%{$term}%");
+                    ->orWhere('cedula', 'like', "%{$term}%");
             })
             ->limit(10)
             ->get(['cedula', 'nombre', 'correo']);
@@ -60,7 +60,7 @@ class VeterinarioFincaController extends Controller
 
         return response()->json([
             'mensaje' => "Veterinario {$vet->nombre} asignado correctamente.",
-            'data'    => $vet->only(['cedula', 'nombre', 'correo']),
+            'data' => $vet->only(['cedula', 'nombre', 'correo']),
         ], 201);
     }
 
@@ -75,14 +75,20 @@ class VeterinarioFincaController extends Controller
 
     private function autorizarAcceso($u, Finca $finca): void
     {
-        if (Finca::visibleFor($u)->whereKey($finca->getKey())->exists()) return;
+        if (Finca::visibleFor($u)->whereKey($finca->getKey())->exists()) {
+            return;
+        }
         abort(response()->json(['mensaje' => 'No tenés permiso para ver esta finca.'], 403));
     }
 
     private function autorizarEdicion($u, Finca $finca): void
     {
-        if ($u->esAdmin()) return;
-        if ($u->esGanadero() && $finca->cedula === $u->cedula) return;
+        if ($u->esAdmin()) {
+            return;
+        }
+        if ($u->esGanadero() && $finca->cedula === $u->cedula) {
+            return;
+        }
         abort(response()->json(['mensaje' => 'No tenés permiso para gestionar veterinarios de esta finca.'], 403));
     }
 }

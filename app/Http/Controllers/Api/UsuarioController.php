@@ -31,10 +31,10 @@ class UsuarioController extends Controller
     public function store(Request $request): JsonResponse
     {
         $datos = $request->validate([
-            'cedula'          => ['required', 'string', 'max:20', 'unique:Usuario,cedula'],
-            'nombre'          => ['required', 'string', 'max:100'],
-            'correo'          => ['required', 'email', 'max:100', 'unique:Usuario,correo'],
-            'contrasena'      => ['required', 'confirmed', Password::min(8)->mixedCase()->symbols()],
+            'cedula' => ['required', 'string', 'max:20', 'unique:Usuario,cedula'],
+            'nombre' => ['required', 'string', 'max:100'],
+            'correo' => ['required', 'email', 'max:100', 'unique:Usuario,correo'],
+            'contrasena' => ['required', 'confirmed', Password::min(8)->mixedCase()->symbols()],
             'id_tipo_usuario' => ['required', 'integer', Rule::in([Usuario::ROL_GANADERO, Usuario::ROL_VETERINARIO])],
         ]);
 
@@ -42,17 +42,17 @@ class UsuarioController extends Controller
 
         return response()->json([
             'mensaje' => 'Usuario creado correctamente.',
-            'data'    => $usuario->only(['cedula', 'nombre', 'correo', 'id_tipo_usuario', 'activo']),
+            'data' => $usuario->only(['cedula', 'nombre', 'correo', 'id_tipo_usuario', 'activo']),
         ], 201);
     }
 
     public function update(Request $request, Usuario $usuario): JsonResponse
     {
         $datos = $request->validate([
-            'nombre'          => ['required', 'string', 'max:100'],
-            'correo'          => ['required', 'email', 'max:100', Rule::unique('Usuario', 'correo')->ignore($usuario->cedula, 'cedula')],
+            'nombre' => ['required', 'string', 'max:100'],
+            'correo' => ['required', 'email', 'max:100', Rule::unique('Usuario', 'correo')->ignore($usuario->cedula, 'cedula')],
             'id_tipo_usuario' => ['required', 'integer', 'exists:Tipo_usuario,id_tipo_usuario'],
-            'contrasena'      => ['nullable', 'confirmed', Password::min(8)->mixedCase()->symbols()],
+            'contrasena' => ['nullable', 'confirmed', Password::min(8)->mixedCase()->symbols()],
         ]);
 
         if (empty($datos['contrasena'])) {
@@ -63,16 +63,16 @@ class UsuarioController extends Controller
         $usuario->update($datos);
 
         AuditoriaService::registrar(
-            accion:       Auditoria::ACCION_ACTUALIZAR,
-            modulo:       Auditoria::MODULO_USUARIOS,
-            descripcion:  "Admin (API) actualizó usuario '{$usuario->nombre}' (cédula: {$usuario->cedula}).",
-            datosAntes:   array_diff_key($original, ['contrasena' => '']),
+            accion: Auditoria::ACCION_ACTUALIZAR,
+            modulo: Auditoria::MODULO_USUARIOS,
+            descripcion: "Admin (API) actualizó usuario '{$usuario->nombre}' (cédula: {$usuario->cedula}).",
+            datosAntes: array_diff_key($original, ['contrasena' => '']),
             datosDespues: array_diff_key($usuario->toArray(), ['contrasena' => '']),
         );
 
         return response()->json([
             'mensaje' => 'Usuario actualizado correctamente.',
-            'data'    => $usuario->only(['cedula', 'nombre', 'correo', 'id_tipo_usuario', 'activo']),
+            'data' => $usuario->only(['cedula', 'nombre', 'correo', 'id_tipo_usuario', 'activo']),
         ]);
     }
 
@@ -86,10 +86,10 @@ class UsuarioController extends Controller
         $usuario->delete();
 
         AuditoriaService::registrar(
-            accion:      Auditoria::ACCION_ELIMINAR,
-            modulo:      Auditoria::MODULO_USUARIOS,
+            accion: Auditoria::ACCION_ELIMINAR,
+            modulo: Auditoria::MODULO_USUARIOS,
             descripcion: "Admin (API) eliminó al usuario '{$snapshot['nombre']}' (cédula: {$snapshot['cedula']}).",
-            datosAntes:  array_diff_key($snapshot, ['contrasena' => '']),
+            datosAntes: array_diff_key($snapshot, ['contrasena' => '']),
         );
 
         return response()->json(['mensaje' => 'Usuario eliminado correctamente.']);
@@ -105,7 +105,7 @@ class UsuarioController extends Controller
 
         return response()->json([
             'mensaje' => $usuario->activo ? 'Usuario activado.' : 'Usuario desactivado.',
-            'activo'  => $usuario->activo,
+            'activo' => $usuario->activo,
         ]);
     }
 }

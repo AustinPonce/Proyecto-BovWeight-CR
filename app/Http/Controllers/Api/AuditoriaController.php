@@ -36,22 +36,22 @@ class AuditoriaController extends Controller
         $paginado = $query->paginate(20);
 
         $data = collect($paginado->items())->map(fn ($r) => [
-            'id_auditoria'   => $r->id_auditoria,
+            'id_auditoria' => $r->id_auditoria,
             'cedula_usuario' => $r->cedula_usuario,
-            'usuario'        => $r->usuario?->nombre,
-            'accion'         => $r->accion,
-            'modulo'         => $r->modulo,
-            'descripcion'    => $r->descripcion,
-            'ip'             => $r->ip,
-            'created_at'     => $r->created_at?->toISOString(),
+            'usuario' => $r->usuario?->nombre,
+            'accion' => $r->accion,
+            'modulo' => $r->modulo,
+            'descripcion' => $r->descripcion,
+            'ip' => $r->ip,
+            'created_at' => $r->created_at?->toISOString(),
         ]);
 
         return response()->json([
             'data' => $data,
             'meta' => [
-                'total'        => $paginado->total(),
+                'total' => $paginado->total(),
                 'current_page' => $paginado->currentPage(),
-                'last_page'    => $paginado->lastPage(),
+                'last_page' => $paginado->lastPage(),
             ],
         ]);
     }

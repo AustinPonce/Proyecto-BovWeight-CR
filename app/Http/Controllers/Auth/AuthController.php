@@ -83,7 +83,7 @@ class AuthController extends Controller
         // Pasamos la lista de roles seleccionables (excluimos Admin: solo se crea
         // desde un seeder o por otro admin, nunca desde el formulario público).
         $rolesSeleccionables = [
-            Usuario::ROL_GANADERO    => 'Ganadero',
+            Usuario::ROL_GANADERO => 'Ganadero',
             Usuario::ROL_VETERINARIO => 'Veterinario',
         ];
 
@@ -106,10 +106,10 @@ class AuthController extends Controller
         //      - al menos un símbolo
         //    La regla Password::min(8)->mixedCase()->symbols() encapsula esto.
         $datos = $request->validate([
-            'cedula'          => ['required', 'string', 'max:20', 'unique:Usuario,cedula'],
-            'nombre'          => ['required', 'string', 'max:100'],
-            'correo'          => ['required', 'email', 'max:100', 'unique:Usuario,correo'],
-            'contrasena'      => [
+            'cedula' => ['required', 'string', 'max:20', 'unique:Usuario,cedula'],
+            'nombre' => ['required', 'string', 'max:100'],
+            'correo' => ['required', 'email', 'max:100', 'unique:Usuario,correo'],
+            'contrasena' => [
                 'required',
                 'confirmed',
                 Password::min(8)->mixedCase()->symbols(),
@@ -130,11 +130,11 @@ class AuthController extends Controller
 
         // RF21 — Auditoría: registro de nuevo usuario.
         AuditoriaService::registrar(
-            accion:       Auditoria::ACCION_REGISTRO,
-            modulo:       Auditoria::MODULO_AUTH,
-            descripcion:  "Nuevo usuario registrado: {$usuario->nombre} (cédula: {$usuario->cedula}, rol: {$usuario->id_tipo_usuario}).",
+            accion: Auditoria::ACCION_REGISTRO,
+            modulo: Auditoria::MODULO_AUTH,
+            descripcion: "Nuevo usuario registrado: {$usuario->nombre} (cédula: {$usuario->cedula}, rol: {$usuario->id_tipo_usuario}).",
             datosDespues: ['cedula' => $usuario->cedula, 'nombre' => $usuario->nombre, 'id_tipo_usuario' => $usuario->id_tipo_usuario],
-            cedula:       $usuario->cedula,
+            cedula: $usuario->cedula,
         );
 
         // 3) Respuesta diferenciada por tipo de cliente.
@@ -145,7 +145,7 @@ class AuthController extends Controller
             return response()->json([
                 'mensaje' => 'Usuario registrado correctamente',
                 'usuario' => $usuario,
-                'token'   => $token,
+                'token' => $token,
             ], 201);
         }
 
@@ -157,7 +157,7 @@ class AuthController extends Controller
         $request->session()->regenerate();
 
         return redirect()->route('dashboard')
-            ->with('exito', 'Bienvenido, ' . $usuario->nombre);
+            ->with('exito', 'Bienvenido, '.$usuario->nombre);
     }
 
     // ==================================================================
@@ -169,14 +169,14 @@ class AuthController extends Controller
         // 1) Validación. Se loguea con CÉDULA + contraseña (no con email, porque
         //    en campo es más práctico tener la cédula a mano).
         $credenciales = $request->validate([
-            'cedula'     => ['required', 'string'],
+            'cedula' => ['required', 'string'],
             'contrasena' => ['required', 'string'],
         ]);
 
         // 2) Mapeamos al campo que espera Auth::attempt (mira getAuthPassword()
         //    en el modelo, que devuelve $this->contrasena).
         $intento = [
-            'cedula'   => $credenciales['cedula'],
+            'cedula' => $credenciales['cedula'],
             'password' => $credenciales['contrasena'], // alias requerido por el framework
         ];
 
@@ -186,10 +186,10 @@ class AuthController extends Controller
             $usuario = Usuario::where('cedula', $credenciales['cedula'])->first();
 
             \Log::info('LOGIN_DEBUG', [
-                'cedula'         => $credenciales['cedula'],
+                'cedula' => $credenciales['cedula'],
                 'contrasena_len' => strlen($credenciales['contrasena']),
-                'usuario_found'  => $usuario ? true : false,
-                'hash_check'     => $usuario ? \Hash::check($credenciales['contrasena'], $usuario->contrasena) : false,
+                'usuario_found' => $usuario ? true : false,
+                'hash_check' => $usuario ? \Hash::check($credenciales['contrasena'], $usuario->contrasena) : false,
             ]);
 
             if (! $usuario || ! \Hash::check($credenciales['contrasena'], $usuario->contrasena)) {
@@ -214,10 +214,10 @@ class AuthController extends Controller
 
             // RF21 — Auditoría: login desde la app móvil.
             AuditoriaService::registrar(
-                accion:      Auditoria::ACCION_LOGIN,
-                modulo:      Auditoria::MODULO_AUTH,
+                accion: Auditoria::ACCION_LOGIN,
+                modulo: Auditoria::MODULO_AUTH,
                 descripcion: "Login exitoso (API) para {$usuario->nombre} (cédula: {$usuario->cedula}).",
-                cedula:      $usuario->cedula,
+                cedula: $usuario->cedula,
             );
 
             \Log::info('LOGIN_DEBUG_4', ['paso' => 'auditoria ok']);
@@ -225,7 +225,7 @@ class AuthController extends Controller
             return response()->json([
                 'mensaje' => 'Login exitoso',
                 'usuario' => $usuario->load('tipoUsuario'),
-                'token'   => $token,
+                'token' => $token,
             ]);
         }
 
@@ -256,10 +256,10 @@ class AuthController extends Controller
 
         // RF21 — Auditoría: login web.
         AuditoriaService::registrar(
-            accion:      Auditoria::ACCION_LOGIN,
-            modulo:      Auditoria::MODULO_AUTH,
+            accion: Auditoria::ACCION_LOGIN,
+            modulo: Auditoria::MODULO_AUTH,
             descripcion: "Login exitoso (web) para {$usuario->nombre} (cédula: {$usuario->cedula}).",
-            cedula:      $usuario->cedula,
+            cedula: $usuario->cedula,
         );
 
         return redirect()->intended(route('dashboard'));
@@ -276,10 +276,10 @@ class AuthController extends Controller
 
             // RF21 — Auditoría: logout API.
             AuditoriaService::registrar(
-                accion:      Auditoria::ACCION_LOGOUT,
-                modulo:      Auditoria::MODULO_AUTH,
+                accion: Auditoria::ACCION_LOGOUT,
+                modulo: Auditoria::MODULO_AUTH,
                 descripcion: "Logout (API) para {$usuario->nombre} (cédula: {$usuario->cedula}).",
-                cedula:      $usuario->cedula,
+                cedula: $usuario->cedula,
             );
 
             // Móvil: revocamos solo el token usado en esta llamada (no todos).
@@ -292,10 +292,10 @@ class AuthController extends Controller
         $usuario = Auth::user();
         if ($usuario) {
             AuditoriaService::registrar(
-                accion:      Auditoria::ACCION_LOGOUT,
-                modulo:      Auditoria::MODULO_AUTH,
+                accion: Auditoria::ACCION_LOGOUT,
+                modulo: Auditoria::MODULO_AUTH,
                 descripcion: "Logout (web) para {$usuario->nombre} (cédula: {$usuario->cedula}).",
-                cedula:      $usuario->cedula,
+                cedula: $usuario->cedula,
             );
         }
 

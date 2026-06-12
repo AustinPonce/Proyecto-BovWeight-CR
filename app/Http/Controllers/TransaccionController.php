@@ -52,13 +52,13 @@ class TransaccionController extends Controller
         $usuario = $request->user();
 
         $datos = $request->validate([
-            'tipo'               => ['required', 'in:compra,venta'],
-            'arete'              => ['required', 'string', 'exists:Animal,arete'],
+            'tipo' => ['required', 'in:compra,venta'],
+            'arete' => ['required', 'string', 'exists:Animal,arete'],
             'nombre_contraparte' => ['required', 'string', 'max:150'],
             'cedula_contraparte' => ['nullable', 'string', 'max:30'],
-            'precio_por_kg'      => ['required', 'numeric', 'min:1', 'max:99999'],
-            'peso_negociado'     => ['required', 'numeric', 'min:1', 'max:3000'],
-            'notas'              => ['nullable', 'string', 'max:1000'],
+            'precio_por_kg' => ['required', 'numeric', 'min:1', 'max:99999'],
+            'peso_negociado' => ['required', 'numeric', 'min:1', 'max:3000'],
+            'notas' => ['nullable', 'string', 'max:1000'],
         ]);
 
         // Verificar que el animal sea visible para el usuario
@@ -67,16 +67,16 @@ class TransaccionController extends Controller
         }
 
         $datos['monto_total'] = round($datos['precio_por_kg'] * $datos['peso_negociado'], 2);
-        $datos['fecha']        = Carbon::now();
+        $datos['fecha'] = Carbon::now();
         $datos['cedula_usuario'] = $usuario->cedula;
 
         $transaccion = Transaccion::create($datos);
 
         // RF21 — Auditoría.
         AuditoriaService::registrar(
-            accion:       Auditoria::ACCION_CREAR,
-            modulo:       Auditoria::MODULO_TRANSACCIONES,
-            descripcion:  "Transacción de '{$datos['tipo']}' registrada para arete '{$datos['arete']}'. Contraparte: '{$datos['nombre_contraparte']}'. Monto: \${$transaccion->monto_total}.",
+            accion: Auditoria::ACCION_CREAR,
+            modulo: Auditoria::MODULO_TRANSACCIONES,
+            descripcion: "Transacción de '{$datos['tipo']}' registrada para arete '{$datos['arete']}'. Contraparte: '{$datos['nombre_contraparte']}'. Monto: \${$transaccion->monto_total}.",
             datosDespues: $transaccion->toArray(),
         );
 
@@ -97,7 +97,8 @@ class TransaccionController extends Controller
             ->get();
 
         $pdf = Pdf::loadView('reports.transacciones_pdf', compact('transacciones', 'usuario'));
-        return $pdf->download('transacciones_' . now()->format('Y-m-d') . '.pdf');
+
+        return $pdf->download('transacciones_'.now()->format('Y-m-d').'.pdf');
     }
 
     public function exportarCsv(Request $request)
@@ -110,15 +111,15 @@ class TransaccionController extends Controller
             ->orderByDesc('fecha')
             ->get();
 
-        $filename = 'transacciones_' . now()->format('Y-m-d') . '.csv';
+        $filename = 'transacciones_'.now()->format('Y-m-d').'.csv';
         $headers = [
-            'Content-Type'        => 'text/csv; charset=UTF-8',
+            'Content-Type' => 'text/csv; charset=UTF-8',
             'Content-Disposition' => "attachment; filename=\"{$filename}\"",
         ];
 
         $callback = function () use ($transacciones) {
             $out = fopen('php://output', 'w');
-            fprintf($out, chr(0xEF) . chr(0xBB) . chr(0xBF));
+            fprintf($out, chr(0xEF).chr(0xBB).chr(0xBF));
             fputcsv($out, ['Fecha', 'Tipo', 'Arete', 'Animal', 'Finca', 'Contraparte', 'Cédula', 'Precio/kg', 'Peso (kg)', 'Monto Total', 'Notas']);
             foreach ($transacciones as $t) {
                 fputcsv($out, [

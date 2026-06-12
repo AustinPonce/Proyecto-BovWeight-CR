@@ -20,9 +20,9 @@ return new class extends Migration
     {
         Schema::table('Raza', function (Blueprint $table) {
             $table->decimal('factor_correccion', 5, 4)
-                  ->default(1.0000)
-                  ->after('raza')
-                  ->comment('Multiplicador de corrección por raza. 1.0000 = sin corrección.');
+                ->default(1.0000)
+                ->after('raza')
+                ->comment('Multiplicador de corrección por raza. 1.0000 = sin corrección.');
         });
     }
 

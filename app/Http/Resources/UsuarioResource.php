@@ -21,9 +21,9 @@ class UsuarioResource extends JsonResource
             'cedula' => $this->cedula,
             'nombre' => $this->nombre,
             'correo' => $this->correo,
-            'rol'    => [
-                'id'     => (int) $this->id_tipo_usuario,
-                'slug'   => $this->slugRol(),
+            'rol' => [
+                'id' => (int) $this->id_tipo_usuario,
+                'slug' => $this->slugRol(),
                 'nombre' => $this->whenLoaded(
                     'tipoUsuario',
                     fn () => $this->tipoUsuario->nombre_tipo,

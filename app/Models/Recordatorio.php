@@ -19,9 +19,11 @@ class Recordatorio extends Model
 {
     use HasFactory;
 
-    protected $table      = 'Recordatorio';
+    protected $table = 'Recordatorio';
+
     protected $primaryKey = 'id_recordatorio';
-    public $timestamps    = false;
+
+    public $timestamps = false;
 
     protected $fillable = ['frecuencia', 'fecha_inicio', 'arete'];
 
@@ -41,7 +43,7 @@ class Recordatorio extends Model
     public function notificaciones()
     {
         return $this->hasMany(Notificacion::class, 'id_recordatorio', 'id_recordatorio')
-                    ->orderByDesc('fecha_envio');
+            ->orderByDesc('fecha_envio');
     }
 
     // ---------------------------------------------------------------
@@ -54,11 +56,11 @@ class Recordatorio extends Model
     public function diasFrecuencia(): int
     {
         return match ($this->frecuencia) {
-            'semanal'     =>  7,
-            'quincenal'   => 15,
-            'mensual'     => 30,
-            'trimestral'  => 90,
-            default       => 30,
+            'semanal' => 7,
+            'quincenal' => 15,
+            'mensual' => 30,
+            'trimestral' => 90,
+            default => 30,
         };
     }
 
@@ -68,9 +70,9 @@ class Recordatorio extends Model
      */
     public function proximaFecha(): Carbon
     {
-        $dias   = $this->diasFrecuencia();
-        $fecha  = Carbon::parse($this->fecha_inicio);
-        $hoy    = Carbon::today();
+        $dias = $this->diasFrecuencia();
+        $fecha = Carbon::parse($this->fecha_inicio);
+        $hoy = Carbon::today();
 
         while ($fecha->lt($hoy)) {
             $fecha->addDays($dias);

@@ -32,10 +32,10 @@ class UsuarioFactory extends Factory
     public function definition(): array
     {
         return [
-            'cedula'          => fake()->unique()->numerify('#########'),
-            'nombre'          => fake()->name(),
-            'correo'          => fake()->unique()->safeEmail(),
-            'contrasena'      => static::$password ??= 'password',
+            'cedula' => fake()->unique()->numerify('#########'),
+            'nombre' => fake()->name(),
+            'correo' => fake()->unique()->safeEmail(),
+            'contrasena' => static::$password ??= 'password',
             'id_tipo_usuario' => TipoUsuario::query()->inRandomOrder()->value('id_tipo_usuario')
                 ?? TipoUsuario::factory(),
         ];

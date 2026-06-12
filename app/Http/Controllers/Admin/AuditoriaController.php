@@ -39,15 +39,15 @@ class AuditoriaController extends Controller
 
         // Datos para los filtros desplegables.
         $usuarios = Usuario::orderBy('nombre')->get(['cedula', 'nombre']);
-        $modulos  = [
-            Auditoria::MODULO_AUTH          => 'Autenticación',
-            Auditoria::MODULO_FINCAS        => 'Fincas',
-            Auditoria::MODULO_ANIMALES      => 'Animales',
-            Auditoria::MODULO_PESAJES       => 'Pesajes',
+        $modulos = [
+            Auditoria::MODULO_AUTH => 'Autenticación',
+            Auditoria::MODULO_FINCAS => 'Fincas',
+            Auditoria::MODULO_ANIMALES => 'Animales',
+            Auditoria::MODULO_PESAJES => 'Pesajes',
             Auditoria::MODULO_TRANSACCIONES => 'Transacciones',
-            Auditoria::MODULO_VETERINARIOS  => 'Veterinarios',
-            Auditoria::MODULO_USUARIOS      => 'Usuarios',
-            Auditoria::MODULO_CATALOGOS     => 'Catálogos',
+            Auditoria::MODULO_VETERINARIOS => 'Veterinarios',
+            Auditoria::MODULO_USUARIOS => 'Usuarios',
+            Auditoria::MODULO_CATALOGOS => 'Catálogos',
         ];
 
         return view('admin.auditoria.index', compact('registros', 'usuarios', 'modulos'));
@@ -63,7 +63,7 @@ class AuditoriaController extends Controller
         $pdf = Pdf::loadView('admin.auditoria.pdf', compact('registros'))
             ->setPaper('A4', 'landscape');
 
-        return $pdf->download('auditoria_' . now()->format('Y-m-d_His') . '.pdf');
+        return $pdf->download('auditoria_'.now()->format('Y-m-d_His').'.pdf');
     }
 
     /**
@@ -72,16 +72,16 @@ class AuditoriaController extends Controller
     public function exportarCsv(Request $request)
     {
         $registros = $this->queryFiltrada($request)->with('usuario')->get();
-        $filename  = 'auditoria_' . now()->format('Y-m-d_His') . '.csv';
+        $filename = 'auditoria_'.now()->format('Y-m-d_His').'.csv';
 
         $headers = [
-            'Content-Type'        => 'text/csv; charset=UTF-8',
+            'Content-Type' => 'text/csv; charset=UTF-8',
             'Content-Disposition' => "attachment; filename=\"{$filename}\"",
         ];
 
         $callback = function () use ($registros) {
             $out = fopen('php://output', 'w');
-            fprintf($out, chr(0xEF) . chr(0xBB) . chr(0xBF)); // BOM UTF-8
+            fprintf($out, chr(0xEF).chr(0xBB).chr(0xBF)); // BOM UTF-8
 
             fputcsv($out, ['Fecha/Hora', 'Usuario', 'Cédula', 'Módulo', 'Acción', 'Descripción', 'IP']);
 

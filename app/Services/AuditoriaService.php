@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Auditoria;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 
 /**
  * AuditoriaService — punto único de registro de eventos de auditoría (RF21).
@@ -36,20 +37,20 @@ class AuditoriaService
     /**
      * Registra un evento de auditoría en la base de datos.
      *
-     * @param string      $accion       Slug de la acción (Auditoria::ACCION_*)
-     * @param string      $modulo       Módulo del sistema (Auditoria::MODULO_*)
-     * @param string      $descripcion  Texto legible para el administrador
-     * @param array|null  $datosAntes   Estado del recurso antes del cambio
-     * @param array|null  $datosDespues Estado del recurso después del cambio
-     * @param string|null $cedula       Cédula del usuario (si no se puede obtener del Auth)
+     * @param  string  $accion  Slug de la acción (Auditoria::ACCION_*)
+     * @param  string  $modulo  Módulo del sistema (Auditoria::MODULO_*)
+     * @param  string  $descripcion  Texto legible para el administrador
+     * @param  array|null  $datosAntes  Estado del recurso antes del cambio
+     * @param  array|null  $datosDespues  Estado del recurso después del cambio
+     * @param  string|null  $cedula  Cédula del usuario (si no se puede obtener del Auth)
      */
     public static function registrar(
-        string  $accion,
-        string  $modulo,
-        string  $descripcion,
-        ?array  $datosAntes   = null,
-        ?array  $datosDespues = null,
-        ?string $cedula       = null,
+        string $accion,
+        string $modulo,
+        string $descripcion,
+        ?array $datosAntes = null,
+        ?array $datosDespues = null,
+        ?string $cedula = null,
     ): void {
         try {
             // Intentamos obtener el usuario autenticado si no se pasó la cédula.
@@ -57,25 +58,25 @@ class AuditoriaService
 
             // Intentamos leer IP y User-Agent del request actual.
             $request = app(Request::class);
-            $ip        = $request?->ip();
+            $ip = $request?->ip();
             $userAgent = $request?->userAgent();
 
             Auditoria::create([
                 'cedula_usuario' => $cedulaFinal,
-                'accion'         => $accion,
-                'modulo'         => $modulo,
-                'descripcion'    => $descripcion,
-                'ip'             => $ip,
-                'user_agent'     => $userAgent,
-                'datos_antes'    => $datosAntes,
-                'datos_despues'  => $datosDespues,
-                'created_at'     => now(),
+                'accion' => $accion,
+                'modulo' => $modulo,
+                'descripcion' => $descripcion,
+                'ip' => $ip,
+                'user_agent' => $userAgent,
+                'datos_antes' => $datosAntes,
+                'datos_despues' => $datosDespues,
+                'created_at' => now(),
             ]);
         } catch (\Throwable $e) {
             // La auditoría NUNCA debe bloquear la operación principal.
             // Registramos el fallo en el log del sistema como fallback.
-            \Illuminate\Support\Facades\Log::error(
-                'AuditoriaService::registrar falló: ' . $e->getMessage(),
+            Log::error(
+                'AuditoriaService::registrar falló: '.$e->getMessage(),
                 ['accion' => $accion, 'modulo' => $modulo]
             );
         }

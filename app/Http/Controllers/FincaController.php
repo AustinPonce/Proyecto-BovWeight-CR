@@ -8,7 +8,6 @@ use App\Models\Finca;
 use App\Models\Usuario;
 use App\Services\AuditoriaService;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 /**
@@ -48,8 +47,7 @@ class FincaController extends Controller
             // El veterinario ve solo fincas a las que está asignado.
             // whereHas filtra fincas que tienen al menos una relación coincidente
             // en la tabla pivote Veterinario_Finca.
-            $query->whereHas('veterinarios', fn ($q) =>
-                $q->where('Veterinario_Finca.cedula', $usuario->cedula)
+            $query->whereHas('veterinarios', fn ($q) => $q->where('Veterinario_Finca.cedula', $usuario->cedula)
             );
         }
         // Admin no filtra nada → ve todas.
@@ -93,9 +91,9 @@ class FincaController extends Controller
 
         // RF21 — Auditoría.
         AuditoriaService::registrar(
-            accion:       Auditoria::ACCION_CREAR,
-            modulo:       Auditoria::MODULO_FINCAS,
-            descripcion:  "Finca '{$datos['nombre']}' creada.",
+            accion: Auditoria::ACCION_CREAR,
+            modulo: Auditoria::MODULO_FINCAS,
+            descripcion: "Finca '{$datos['nombre']}' creada.",
             datosDespues: $datos,
         );
 
@@ -150,10 +148,10 @@ class FincaController extends Controller
 
         // RF21 — Auditoría.
         AuditoriaService::registrar(
-            accion:      Auditoria::ACCION_ACTUALIZAR,
-            modulo:      Auditoria::MODULO_FINCAS,
+            accion: Auditoria::ACCION_ACTUALIZAR,
+            modulo: Auditoria::MODULO_FINCAS,
             descripcion: "Finca '{$finca->nombre}' actualizada.",
-            datosAntes:  $finca->getOriginal(),
+            datosAntes: $finca->getOriginal(),
             datosDespues: $finca->toArray(),
         );
 
@@ -174,10 +172,10 @@ class FincaController extends Controller
 
         // RF21 — Auditoría.
         AuditoriaService::registrar(
-            accion:      Auditoria::ACCION_ELIMINAR,
-            modulo:      Auditoria::MODULO_FINCAS,
+            accion: Auditoria::ACCION_ELIMINAR,
+            modulo: Auditoria::MODULO_FINCAS,
             descripcion: "Finca '{$nombre}' eliminada.",
-            datosAntes:  $finca->toArray(),
+            datosAntes: $finca->toArray(),
         );
 
         return redirect()
@@ -197,9 +195,13 @@ class FincaController extends Controller
     {
         $u = auth()->user();
 
-        if ($u->esAdmin()) return;
+        if ($u->esAdmin()) {
+            return;
+        }
 
-        if ($u->esGanadero() && $finca->cedula === $u->cedula) return;
+        if ($u->esGanadero() && $finca->cedula === $u->cedula) {
+            return;
+        }
 
         if ($u->esVeterinario()
             && $finca->veterinarios()->where('Veterinario_Finca.cedula', $u->cedula)->exists()) {
@@ -217,9 +219,13 @@ class FincaController extends Controller
     {
         $u = auth()->user();
 
-        if ($u->esAdmin()) return;
+        if ($u->esAdmin()) {
+            return;
+        }
 
-        if ($u->esGanadero() && $finca->cedula === $u->cedula) return;
+        if ($u->esGanadero() && $finca->cedula === $u->cedula) {
+            return;
+        }
 
         abort(403, 'No tenés permiso para modificar esta finca.');
     }
