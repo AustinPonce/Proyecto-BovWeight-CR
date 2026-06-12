@@ -60,16 +60,21 @@ logging.basicConfig(
 logger = logging.getLogger("ml_service")
 
 # --------------------------------------------------------------------------- #
-# Carga del modelo (una sola vez, al importar el módulo)
+# Carga del modelo (lazy: se inicializa en la primera petición a /estimar)
 # --------------------------------------------------------------------------- #
 
-# yolov8n = "nano": el más liviano (~6 MB). Suficiente para detección
-# de un animal grande. Si se requiere más precisión, usar yolov8s o yolov8m.
 MODEL_PATH = os.environ.get("YOLO_MODEL", "yolov8n.pt")
 
-logger.info("Cargando modelo YOLOv8 desde %s (la primera vez se descarga)...", MODEL_PATH)
-modelo = YOLO(MODEL_PATH)
-logger.info("Modelo listo. Clases conocidas: %d", len(modelo.names))
+_modelo = None
+
+
+def _get_modelo():
+    global _modelo
+    if _modelo is None:
+        logger.info("Cargando modelo YOLOv8 desde %s (la primera vez se descarga)...", MODEL_PATH)
+        _modelo = YOLO(MODEL_PATH)
+        logger.info("Modelo listo. Clases conocidas: %d", len(_modelo.names))
+    return _modelo
 
 # --------------------------------------------------------------------------- #
 # App Flask
@@ -110,7 +115,7 @@ def estimar():
     # ---- Detección con YOLOv8 ---- #
     # results es una lista (una entrada por imagen). Cada entrada trae .boxes
     # con tensores de xyxy, conf y cls.
-    resultados = modelo.predict(
+    resultados = _get_modelo().predict(
         source=np.array(imagen),
         conf=CONFIDENCE_THRESHOLD,
         verbose=False,
@@ -141,7 +146,7 @@ def estimar():
     # un mensaje útil al usuario (ej. "se detectó un caballo, no una vaca").
     if not cows:
         otras = [
-            (modelo.names[int(cls)], float(conf))
+            (_get_modelo().names[int(cls)], float(conf))
             for _, conf, cls in todas
             if int(cls) != CLASS_ID_COW and float(conf) >= NON_COW_DOMINANT_THRESHOLD
         ]

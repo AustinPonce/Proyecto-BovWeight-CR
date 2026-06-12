@@ -185,6 +185,13 @@ class AuthController extends Controller
         if ($request->expectsJson()) {
             $usuario = Usuario::where('cedula', $credenciales['cedula'])->first();
 
+            \Log::info('LOGIN_DEBUG', [
+                'cedula'         => $credenciales['cedula'],
+                'contrasena_len' => strlen($credenciales['contrasena']),
+                'usuario_found'  => $usuario ? true : false,
+                'hash_check'     => $usuario ? \Hash::check($credenciales['contrasena'], $usuario->contrasena) : false,
+            ]);
+
             if (! $usuario || ! \Hash::check($credenciales['contrasena'], $usuario->contrasena)) {
                 throw ValidationException::withMessages([
                     'cedula' => ['Credenciales inválidas.'],
@@ -197,9 +204,13 @@ class AuthController extends Controller
                 ], 403);
             }
 
+            \Log::info('LOGIN_DEBUG_2', ['paso' => 'activo ok']);
+
             // Borra tokens previos del mismo dispositivo (opcional, pero ordena la tabla).
             $usuario->tokens()->where('name', 'app-movil')->delete();
             $token = $usuario->createToken('app-movil')->plainTextToken;
+
+            \Log::info('LOGIN_DEBUG_3', ['paso' => 'token creado', 'token_len' => strlen($token)]);
 
             // RF21 — Auditoría: login desde la app móvil.
             AuditoriaService::registrar(
@@ -208,6 +219,8 @@ class AuthController extends Controller
                 descripcion: "Login exitoso (API) para {$usuario->nombre} (cédula: {$usuario->cedula}).",
                 cedula:      $usuario->cedula,
             );
+
+            \Log::info('LOGIN_DEBUG_4', ['paso' => 'auditoria ok']);
 
             return response()->json([
                 'mensaje' => 'Login exitoso',
