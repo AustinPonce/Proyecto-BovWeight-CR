@@ -13,4 +13,10 @@ class Usuario extends Model
     public $timestamps = false;
 
     protected $fillable = ['cedula', 'nombre', 'correo', 'contrasena', 'id_tipo_usuario'];
+
+    public function usuario()
+{
+    // Una finca pertenece a un usuario (dueño)
+    return $this->belongsTo(Usuario::class, 'cedula', 'cedula');
+}
 }
