@@ -1,53 +1,37 @@
 <?php
-
 namespace Database\Seeders;
-
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 
-class CatalogosSeeder extends Seeder
-{
-    public function run(): void
-    {
-        // 1. Datos iniciales para Tipo de Usuario
+class CatalogosSeeder extends Seeder {
+    public function run(): void {
         DB::table('Tipo_usuario')->insert([
-            ['nombre_tipo' => 'Administrador'],
-            ['nombre_tipo' => 'Ganadero / Dueño'],
-            ['nombre_tipo' => 'Veterinario'],
+            ['id_tipo_usuario' => 1, 'nombre_tipo' => 'Administrador'],
+            ['id_tipo_usuario' => 2, 'nombre_tipo' => 'Ganadero'],
+            ['id_tipo_usuario' => 3, 'nombre_tipo' => 'Veterinario'],
         ]);
 
-        // 2. Datos iniciales para Estado del Animal
         DB::table('Estado')->insert([
-            ['estado' => 'Activo'],
-            ['estado' => 'Vendido'],
-            ['estado' => 'Fallecido'],
+            ['id_estado' => 1, 'estado' => 'Activo'],
+            ['id_estado' => 2, 'estado' => 'Vendido'],
         ]);
 
-        // 3. Datos iniciales para Razas de Ganado
         DB::table('Raza')->insert([
-            ['raza' => 'Brahman'],
-            ['raza' => 'Pardo Suizo'],
-            ['raza' => 'Holstein'],
-            ['raza' => 'Nelore'],
-            ['raza' => 'Gyr'],
+            ['id_raza' => 1, 'raza' => 'Brahman'],
+            ['id_raza' => 2, 'raza' => 'Nelore'],
         ]);
 
-        // 4. Datos iniciales para Sexo
         DB::table('Sexo')->insert([
-            ['sexo' => 'Macho'],
-            ['sexo' => 'Hembra'],
+            ['id_sexo' => 1, 'sexo' => 'Macho'],
+            ['id_sexo' => 2, 'sexo' => 'Hembra'],
         ]);
 
-        // 5. Datos iniciales para Tipo de Pesaje
         DB::table('Tipo_Pesaje')->insert([
-            ['tipo_pesaje' => 'Estimación por Fotografía'],
-            ['tipo_pesaje' => 'Pesaje Manual con Báscula'],
+            ['id_tipo_pesaje' => 1, 'tipo_pesaje' => 'Control Mensual'],
         ]);
 
-        // 6. Datos iniciales para Tipo de Formato de Reporte
         DB::table('Tipo_Formato')->insert([
-            ['tipo' => 'PDF'],
-            ['tipo' => 'Excel'],
+            ['id_Tipo_Formato' => 1, 'tipo' => 'PDF'],
         ]);
     }
 }
