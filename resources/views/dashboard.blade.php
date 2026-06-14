@@ -55,9 +55,9 @@
             <h3 class="font-semibold text-emerald-700">Mis fincas</h3>
             <p class="text-sm text-gray-600 mt-1">Gestionar fincas registradas a tu nombre.</p>
         </a>
-        <a href="#" class="block bg-white border-l-4 border-emerald-500 shadow rounded p-5 hover:shadow-md transition">
+        <a href="{{ route('animales.index') }}" class="block bg-white border-l-4 border-emerald-500 shadow rounded p-5 hover:shadow-md transition">
             <h3 class="font-semibold text-emerald-700">Mis animales</h3>
-            <p class="text-sm text-gray-600 mt-1">Registrar y consultar ganado por finca. <span class="text-xs">(próximo bloque)</span></p>
+            <p class="text-sm text-gray-600 mt-1">Registrar y consultar ganado por finca.</p>
         </a>
         <a href="#" class="block bg-white border-l-4 border-emerald-500 shadow rounded p-5 hover:shadow-md transition">
             <h3 class="font-semibold text-emerald-700">Estimar peso por foto</h3>

@@ -53,17 +53,39 @@
     </div>
 </div>
 
-{{-- Animales — placeholder hasta sub-bloque 2B --}}
+{{-- Animales de la finca --}}
 <div class="bg-white shadow rounded p-5">
-    <h2 class="font-semibold text-gray-700 mb-3">Animales en esta finca</h2>
+    <div class="flex items-center justify-between mb-3">
+        <h2 class="font-semibold text-gray-700">Animales en esta finca</h2>
+        <div class="space-x-3">
+            @if (! $usuario->esVeterinario())
+                <a href="{{ route('animales.create', ['finca' => $finca->id_finca]) }}"
+                   class="text-emerald-700 hover:underline text-sm font-medium">+ Nuevo animal</a>
+            @endif
+            <a href="{{ route('animales.index', ['finca' => $finca->id_finca]) }}"
+               class="text-sky-700 hover:underline text-sm">Ver todos →</a>
+        </div>
+    </div>
+
     @if ($finca->animales->isEmpty())
         <p class="text-sm text-gray-500">Todavía no hay animales registrados en esta finca.</p>
     @else
         <ul class="text-sm space-y-1">
-            @foreach ($finca->animales as $animal)
-                <li>• Arete <span class="font-mono">{{ $animal->arete }}</span> — {{ $animal->nombre ?? 'Sin nombre' }}</li>
+            @foreach ($finca->animales->take(10) as $animal)
+                <li>
+                    • <a href="{{ route('animales.show', $animal) }}" class="hover:underline">
+                        Arete <span class="font-mono">{{ $animal->arete }}</span> — {{ $animal->nombre ?? 'Sin nombre' }}
+                    </a>
+                </li>
             @endforeach
         </ul>
+        @if ($finca->animales->count() > 10)
+            <p class="text-xs text-gray-500 mt-2">
+                Mostrando 10 de {{ $finca->animales->count() }}.
+                <a href="{{ route('animales.index', ['finca' => $finca->id_finca]) }}"
+                   class="text-sky-700 hover:underline">Ver todos</a>
+            </p>
+        @endif
     @endif
 </div>
 

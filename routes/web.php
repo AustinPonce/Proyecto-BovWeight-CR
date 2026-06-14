@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AnimalController;
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\FincaController;
 use Illuminate\Support\Facades\Route;
@@ -58,6 +59,15 @@ Route::middleware('auth')->group(function () {
     //   PUT    /fincas/{finca}      → update
     //   DELETE /fincas/{finca}      → destroy
     Route::resource('fincas', FincaController::class)
+        ->middleware('rol:admin,ganadero,veterinario');
+
+    // ------------------------------------------------------------------
+    // ANIMALES (CRUD)
+    // ------------------------------------------------------------------
+    // Mismos roles que fincas. El control fino (scope por finca propia,
+    // veterinario sin escritura) se hace dentro del AnimalController.
+    Route::resource('animales', AnimalController::class)
+        ->parameters(['animales' => 'animal'])    // {animal} en vez de {animale}
         ->middleware('rol:admin,ganadero,veterinario');
 
 });
