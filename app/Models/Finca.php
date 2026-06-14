@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -48,5 +49,46 @@ class Finca extends Model
             'id_finca',
             'cedula'
         );
+    }
+
+    // ------------------------------------------------------------------
+    // Local Scope: filtrado por rol del usuario
+    // ------------------------------------------------------------------
+    //
+    // Un "local scope" es un método del modelo que extiende la query builder.
+    // Se invoca quitándole el prefijo "scope":
+    //
+    //   Finca::visibleFor($usuario)->get();
+    //   Finca::visibleFor($usuario)->where('nombre', 'like', '%X%')->get();
+    //
+    // Esto centraliza la lógica de control de acceso. Si mañana cambian las
+    // reglas (ej. "el comprador también ve fincas marcadas como públicas"),
+    // se toca acá y aplica a TODOS los lugares que usan el scope: web, API,
+    // reportes, exports, etc.
+
+    /**
+     * Devuelve solo las fincas que el usuario tiene permiso de ver.
+     *   - Admin       → todas
+     *   - Ganadero    → solo las suyas (cedula propia)
+     *   - Veterinario → solo asignadas vía pivote Veterinario_Finca
+     */
+    public function scopeVisibleFor(Builder $query, Usuario $usuario): Builder
+    {
+        if ($usuario->esAdmin()) {
+            return $query;
+        }
+
+        if ($usuario->esGanadero()) {
+            return $query->where('cedula', $usuario->cedula);
+        }
+
+        if ($usuario->esVeterinario()) {
+            return $query->whereHas('veterinarios', fn ($q) =>
+                $q->where('Veterinario_Finca.cedula', $usuario->cedula)
+            );
+        }
+
+        // Rol desconocido: por seguridad, nada.
+        return $query->whereRaw('1 = 0');
     }
 }
