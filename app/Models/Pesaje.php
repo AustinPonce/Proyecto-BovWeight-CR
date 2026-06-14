@@ -17,4 +17,9 @@ class Pesaje extends Model
     public $timestamps = false;
 
     protected $fillable = ['fecha', 'peso', 'imagen', 'sincronizado', 'arete', 'id_tipo_pesaje'];
+
+    public function animal()
+{
+    return $this->belongsTo(Animal::class, 'arete', 'arete');
+}
 }
