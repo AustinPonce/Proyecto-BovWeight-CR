@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Auth\AuthController;
+use App\Http\Controllers\FincaController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -40,16 +41,23 @@ Route::middleware('auth')->group(function () {
     // Logout.
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
-    // ---- Ejemplos de rutas restringidas por rol (se implementarán en Bloque 2) ----
+    // ------------------------------------------------------------------
+    // FINCAS (CRUD)
+    // ------------------------------------------------------------------
+    // Admin, Ganadero y Veterinario pueden ENTRAR a la sección (el filtrado
+    // por dueño/asignación se hace dentro del controller).
+    // El veterinario ve la sección pero el controller lo limita a lectura
+    // y le devuelve solo las fincas a las que está asignado.
     //
-    // Solo administradores pueden gestionar usuarios:
-    // Route::get('/admin/usuarios', [UsuarioController::class, 'index'])
-    //     ->middleware('rol:admin')
-    //     ->name('admin.usuarios');
-    //
-    // Ganaderos y veterinarios pueden ver fincas (cada uno las suyas):
-    // Route::get('/fincas', [FincaController::class, 'index'])
-    //     ->middleware('rol:ganadero,veterinario')
-    //     ->name('fincas.index');
+    // Route::resource genera 7 rutas RESTful:
+    //   GET    /fincas              → index
+    //   GET    /fincas/create       → create
+    //   POST   /fincas              → store
+    //   GET    /fincas/{finca}      → show
+    //   GET    /fincas/{finca}/edit → edit
+    //   PUT    /fincas/{finca}      → update
+    //   DELETE /fincas/{finca}      → destroy
+    Route::resource('fincas', FincaController::class)
+        ->middleware('rol:admin,ganadero,veterinario');
 
 });

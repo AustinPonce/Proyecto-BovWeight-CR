@@ -51,17 +51,17 @@
     {{-- BLOQUE GANADERO: dueño de fincas                            --}}
     {{-- ============================================================ --}}
     @if ($usuario->esGanadero() || $usuario->esAdmin())
-        <a href="#" class="block bg-white border-l-4 border-emerald-500 shadow rounded p-5 hover:shadow-md transition">
+        <a href="{{ route('fincas.index') }}" class="block bg-white border-l-4 border-emerald-500 shadow rounded p-5 hover:shadow-md transition">
             <h3 class="font-semibold text-emerald-700">Mis fincas</h3>
             <p class="text-sm text-gray-600 mt-1">Gestionar fincas registradas a tu nombre.</p>
         </a>
         <a href="#" class="block bg-white border-l-4 border-emerald-500 shadow rounded p-5 hover:shadow-md transition">
             <h3 class="font-semibold text-emerald-700">Mis animales</h3>
-            <p class="text-sm text-gray-600 mt-1">Registrar y consultar ganado por finca.</p>
+            <p class="text-sm text-gray-600 mt-1">Registrar y consultar ganado por finca. <span class="text-xs">(próximo bloque)</span></p>
         </a>
         <a href="#" class="block bg-white border-l-4 border-emerald-500 shadow rounded p-5 hover:shadow-md transition">
             <h3 class="font-semibold text-emerald-700">Estimar peso por foto</h3>
-            <p class="text-sm text-gray-600 mt-1">Subí una foto y obtené el peso estimado.</p>
+            <p class="text-sm text-gray-600 mt-1">Subí una foto y obtené el peso estimado. <span class="text-xs">(próximo bloque)</span></p>
         </a>
     @endif
 
@@ -69,13 +69,13 @@
     {{-- BLOQUE VETERINARIO: fincas asignadas, dosificación          --}}
     {{-- ============================================================ --}}
     @if ($usuario->esVeterinario() || $usuario->esAdmin())
-        <a href="#" class="block bg-white border-l-4 border-sky-500 shadow rounded p-5 hover:shadow-md transition">
+        <a href="{{ route('fincas.index') }}" class="block bg-white border-l-4 border-sky-500 shadow rounded p-5 hover:shadow-md transition">
             <h3 class="font-semibold text-sky-700">Fincas asignadas</h3>
             <p class="text-sm text-gray-600 mt-1">Fincas en las que sos veterinario.</p>
         </a>
         <a href="#" class="block bg-white border-l-4 border-sky-500 shadow rounded p-5 hover:shadow-md transition">
             <h3 class="font-semibold text-sky-700">Calculadora de dosis</h3>
-            <p class="text-sm text-gray-600 mt-1">Basada en peso estimado del animal.</p>
+            <p class="text-sm text-gray-600 mt-1">Basada en peso estimado del animal. <span class="text-xs">(próximo bloque)</span></p>
         </a>
     @endif
 
