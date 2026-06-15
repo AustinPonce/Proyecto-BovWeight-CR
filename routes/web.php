@@ -3,6 +3,7 @@
 use App\Http\Controllers\AnimalController;
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\FincaController;
+use App\Http\Controllers\PesajeController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -68,6 +69,15 @@ Route::middleware('auth')->group(function () {
     // veterinario sin escritura) se hace dentro del AnimalController.
     Route::resource('animales', AnimalController::class)
         ->parameters(['animales' => 'animal'])    // {animal} en vez de {animale}
+        ->middleware('rol:admin,ganadero,veterinario');
+
+    // ------------------------------------------------------------------
+    // PESAJES (CRUD parcial — sin edit/update, los pesajes no se editan)
+    // ------------------------------------------------------------------
+    // Los pesajes son inmutables: si está mal, se borra y se vuelve a registrar.
+    // Eso es estándar en sistemas zootécnicos por trazabilidad.
+    Route::resource('pesajes', PesajeController::class)
+        ->only(['index', 'create', 'store', 'show', 'destroy'])
         ->middleware('rol:admin,ganadero,veterinario');
 
 });

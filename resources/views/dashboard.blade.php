@@ -59,9 +59,13 @@
             <h3 class="font-semibold text-emerald-700">Mis animales</h3>
             <p class="text-sm text-gray-600 mt-1">Registrar y consultar ganado por finca.</p>
         </a>
-        <a href="#" class="block bg-white border-l-4 border-emerald-500 shadow rounded p-5 hover:shadow-md transition">
-            <h3 class="font-semibold text-emerald-700">Estimar peso por foto</h3>
-            <p class="text-sm text-gray-600 mt-1">Subí una foto y obtené el peso estimado. <span class="text-xs">(próximo bloque)</span></p>
+        <a href="{{ route('pesajes.create') }}" class="block bg-white border-l-4 border-emerald-500 shadow rounded p-5 hover:shadow-md transition">
+            <h3 class="font-semibold text-emerald-700">Registrar pesaje</h3>
+            <p class="text-sm text-gray-600 mt-1">Por medidas corporales o por foto del animal.</p>
+        </a>
+        <a href="{{ route('pesajes.index') }}" class="block bg-white border-l-4 border-emerald-500 shadow rounded p-5 hover:shadow-md transition">
+            <h3 class="font-semibold text-emerald-700">Historial de pesajes</h3>
+            <p class="text-sm text-gray-600 mt-1">Consultar todos los pesajes registrados.</p>
         </a>
     @endif
 

@@ -25,12 +25,18 @@
             </a>
         </p>
     </div>
-    @if ($puedeEditar)
-        <a href="{{ route('animales.edit', $animal) }}"
-           class="bg-emerald-700 hover:bg-emerald-800 text-white px-4 py-2 rounded text-sm">
-            Editar
-        </a>
-    @endif
+    <div class="flex items-center gap-2">
+        @if ($puedeEditar)
+            <a href="{{ route('pesajes.create', ['animal' => $animal->arete]) }}"
+               class="bg-emerald-700 hover:bg-emerald-800 text-white px-4 py-2 rounded text-sm">
+                + Pesaje
+            </a>
+            <a href="{{ route('animales.edit', $animal) }}"
+               class="bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 px-4 py-2 rounded text-sm">
+                Editar
+            </a>
+        @endif
+    </div>
 </div>
 
 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">

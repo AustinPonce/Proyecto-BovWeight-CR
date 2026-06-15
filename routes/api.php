@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\AnimalController;
 use App\Http\Controllers\Api\FincaController;
+use App\Http\Controllers\Api\PesajeController;
 use App\Http\Controllers\Auth\AuthController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -45,6 +46,11 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::apiResource('animales', AnimalController::class)
         ->parameters(['animales' => 'animal'])
+        ->middleware('rol:admin,ganadero,veterinario');
+
+    // Pesajes: index/store/show/destroy (no editan, son inmutables).
+    Route::apiResource('pesajes', PesajeController::class)
+        ->only(['index', 'store', 'show', 'destroy'])
         ->middleware('rol:admin,ganadero,veterinario');
 
 });
