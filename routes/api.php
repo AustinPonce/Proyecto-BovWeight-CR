@@ -38,19 +38,23 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout',  [AuthController::class, 'logout']);
 
     // ---- Recursos del negocio ----
-    // apiResource genera solo los 5 endpoints REST (sin create/edit
-    // que son las vistas web). El middleware rol asegura que solo
-    // los roles correctos puedan llegar a estos controllers.
+    // IMPORTANTE: les ponemos prefijo 'api.' al nombre de las rutas
+    // (api.fincas.index, api.animales.index, etc.) para que NO choquen
+    // con las rutas web del mismo nombre. Sin esto, route('fincas.index')
+    // en una vista Blade resolvería a /api/fincas en vez de /fincas.
     Route::apiResource('fincas',   FincaController::class)
+        ->names('api.fincas')
         ->middleware('rol:admin,ganadero,veterinario');
 
     Route::apiResource('animales', AnimalController::class)
         ->parameters(['animales' => 'animal'])
+        ->names('api.animales')
         ->middleware('rol:admin,ganadero,veterinario');
 
     // Pesajes: index/store/show/destroy (no editan, son inmutables).
     Route::apiResource('pesajes', PesajeController::class)
         ->only(['index', 'store', 'show', 'destroy'])
+        ->names('api.pesajes')
         ->middleware('rol:admin,ganadero,veterinario');
 
 });
