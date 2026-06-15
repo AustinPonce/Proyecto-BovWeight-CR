@@ -60,6 +60,12 @@ class PesajeController extends Controller
             return response()->json(['mensaje' => 'No tenés permiso para ese animal'], 403);
         }
 
+        // Guardar imagen primero para tener el path antes de calcular.
+        $pathImagen = null;
+        if ($request->hasFile('imagen')) {
+            $pathImagen = $request->file('imagen')->store('pesajes', 'public');
+        }
+
         // Strategy.
         $strategy = $this->resolverStrategy($datos['tipo']);
         $context  = new CalculadorPesoContext($strategy);
@@ -70,15 +76,9 @@ class PesajeController extends Controller
                 'altura'             => (float) $datos['altura'],
                 'perimetro_toracico' => (float) $datos['perimetro_toracico'],
             ]
-            : ['imagen' => null]; // En 2E pasamos path real
+            : ['imagen' => $pathImagen];
 
         $peso = $context->calcular($datosCalculo);
-
-        // Guardar imagen si vino.
-        $pathImagen = null;
-        if ($request->hasFile('imagen')) {
-            $pathImagen = $request->file('imagen')->store('pesajes', 'public');
-        }
 
         $pesaje = Pesaje::create([
             'fecha'          => Carbon::now(),

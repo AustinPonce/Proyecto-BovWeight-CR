@@ -35,4 +35,12 @@ return [
         ],
     ],
 
+    // Microservicio de estimación de peso (ml_service/, Python + YOLOv8).
+    // URL configurable por entorno: local apunta a 127.0.0.1, en prod puede
+    // apuntar a un contenedor (docker-compose) o a un host externo.
+    'ml' => [
+        'url'     => env('ML_SERVICE_URL', 'http://127.0.0.1:5000'),
+        'timeout' => env('ML_SERVICE_TIMEOUT', 30),
+    ],
+
 ];

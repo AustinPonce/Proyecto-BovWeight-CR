@@ -100,11 +100,19 @@ class PesajeController extends Controller
         // 1) Verificar que el animal sea uno que el usuario tiene permitido.
         $this->autorizarAnimal($request, $datos['arete']);
 
-        // 2) Elegir la estrategia (PATRÓN STRATEGY).
+        // 2) Si viene imagen, guardarla AHORA en storage para tener el path
+        //    disponible para el microservicio ML.
+        $pathImagen = null;
+        if ($request->hasFile('imagen')) {
+            $pathImagen = $request->file('imagen')->store('pesajes', 'public');
+        }
+
+        // 3) Elegir la estrategia (PATRÓN STRATEGY).
         $strategy = $this->resolverStrategy($datos['tipo']);
         $context  = new CalculadorPesoContext($strategy);
 
-        // 3) Armar el array de datos para la estrategia.
+        // 4) Armar el array de datos para la estrategia.
+        //    Manual → medidas corporales. Foto → path en disk 'public'.
         $datosCalculo = $datos['tipo'] === 'manual'
             ? [
                 'largo_cuerpo'       => (float) $datos['largo_cuerpo'],
@@ -112,19 +120,11 @@ class PesajeController extends Controller
                 'perimetro_toracico' => (float) $datos['perimetro_toracico'],
             ]
             : [
-                // En 2E acá pasamos el path de la imagen al microservicio ML.
-                // Por ahora la FotoIAWeightStrategy devuelve un mock random.
-                'imagen' => null,
+                'imagen' => $pathImagen, // se manda al microservicio Python
             ];
 
-        // 4) Calcular el peso.
+        // 5) Calcular el peso. Si el ML está caído, la strategy hace fallback.
         $peso = $context->calcular($datosCalculo);
-
-        // 5) Si vino imagen, guardarla en storage/app/public/pesajes.
-        $pathImagen = null;
-        if ($request->hasFile('imagen')) {
-            $pathImagen = $request->file('imagen')->store('pesajes', 'public');
-        }
 
         // 6) Crear el Pesaje. Los Observers se disparan automáticamente acá:
         //    - AuditoriaPesajeObserver  → log de auditoría
