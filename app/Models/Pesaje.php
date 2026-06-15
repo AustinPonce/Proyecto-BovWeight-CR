@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use App\Observers\CrearNotificacionObserver;
 use App\Observers\VerificarPesoObserver;
@@ -12,6 +13,8 @@ use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 #[ObservedBy([CrearNotificacionObserver::class, VerificarPesoObserver::class, AuditoriaPesajeObserver::class])]
 class Pesaje extends Model
 {
+    use HasFactory;
+
     protected $table = 'Pesaje';
     protected $primaryKey = 'id_pesaje';
     public $timestamps = false;
