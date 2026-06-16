@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Contracts\ICalculadorPeso;
+use App\Exceptions\NoBovinoDetectadoException;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\PesajeRequest;
 use App\Http\Resources\PesajeResource;
@@ -15,6 +16,7 @@ use App\Strategies\FotoIAWeightStrategy;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 /**
  * API REST de Pesajes (app móvil Ionic).
@@ -78,7 +80,18 @@ class PesajeController extends Controller
             ]
             : ['imagen' => $pathImagen];
 
-        $peso = $context->calcular($datosCalculo);
+        // Si ML detecta que NO es una vaca: borrar imagen y devolver 422.
+        try {
+            $peso = $context->calcular($datosCalculo);
+        } catch (NoBovinoDetectadoException $e) {
+            if ($pathImagen) {
+                Storage::disk('public')->delete($pathImagen);
+            }
+            return response()->json([
+                'mensaje' => $e->mensajeUsuario,
+                'detalles' => $e->detalles,
+            ], 422);
+        }
 
         $pesaje = Pesaje::create([
             'fecha'          => Carbon::now(),
@@ -113,7 +126,7 @@ class PesajeController extends Controller
         }
 
         if ($pesaje->imagen) {
-            \Storage::disk('public')->delete($pesaje->imagen);
+            Storage::disk('public')->delete($pesaje->imagen);
         }
         $pesaje->delete();
 

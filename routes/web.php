@@ -80,4 +80,37 @@ Route::middleware('auth')->group(function () {
         ->only(['index', 'create', 'store', 'show', 'destroy'])
         ->middleware('rol:admin,ganadero,veterinario');
 
+    // ------------------------------------------------------------------
+    // STUBS — vistas planeadas, implementación en próximas fases.
+    // Estas rutas existen para que el dashboard no tire "Route not defined".
+    // Cada feature se reemplaza con su controller real cuando se complete.
+    // ------------------------------------------------------------------
+    Route::middleware('rol:admin')->prefix('admin')->name('admin.')->group(function () {
+        Route::view('/usuarios', 'proximamente', [
+            'titulo'      => 'Gestión de usuarios',
+            'descripcion' => 'Crear, editar y desactivar cuentas del sistema.',
+            'fase'        => 'Fase 3 (item #8)',
+        ])->name('usuarios.index');
+
+        Route::view('/catalogos', 'proximamente', [
+            'titulo'      => 'Catálogos del sistema',
+            'descripcion' => 'Razas, estados, tipos de pesaje y medicamentos.',
+            'fase'        => 'Fase 3 (item #9)',
+        ])->name('catalogos.index');
+
+        Route::view('/reportes', 'proximamente', [
+            'titulo'      => 'Reportes globales',
+            'descripcion' => 'Estadísticas de todas las fincas y pesajes.',
+            'fase'        => 'Fase 4 (item #12)',
+        ])->name('reportes.index');
+    });
+
+    Route::middleware('rol:veterinario,admin')->group(function () {
+        Route::view('/dosis', 'proximamente', [
+            'titulo'      => 'Calculadora de dosis',
+            'descripcion' => 'Calcular dosis de medicamentos según peso del animal.',
+            'fase'        => 'Fase 3 (item #6)',
+        ])->name('dosis.calcular');
+    });
+
 });
