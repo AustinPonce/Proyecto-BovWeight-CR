@@ -149,13 +149,19 @@ class AuthController extends Controller
                 ]);
             }
 
+            if (! $usuario->activo) {
+                return response()->json([
+                    'message' => 'Tu cuenta está desactivada. Contactá al administrador.',
+                ], 403);
+            }
+
             // Borra tokens previos del mismo dispositivo (opcional, pero ordena la tabla).
             $usuario->tokens()->where('name', 'app-movil')->delete();
             $token = $usuario->createToken('app-movil')->plainTextToken;
 
             return response()->json([
                 'mensaje' => 'Login exitoso',
-                'usuario' => $usuario,
+                'usuario' => $usuario->load('tipoUsuario'),
                 'token'   => $token,
             ]);
         }

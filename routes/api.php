@@ -105,9 +105,11 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::delete('razas/{raza}', [RazaController::class, 'destroy'])
         ->name('api.razas.destroy')->middleware('rol:admin');
 
-    // ---- Gestión de usuarios (solo admin, excluye admins) ----
+    // ---- Gestión de usuarios (solo admin, excluye admins del listado) ----
     Route::get('usuarios', [UsuarioController::class, 'index'])
         ->name('api.usuarios.index')->middleware('rol:admin');
+    Route::post('usuarios', [UsuarioController::class, 'store'])
+        ->name('api.usuarios.store')->middleware('rol:admin');
     Route::patch('usuarios/{usuario}/toggle-activo', [UsuarioController::class, 'toggleActivo'])
         ->name('api.usuarios.toggle-activo')->middleware('rol:admin');
 
