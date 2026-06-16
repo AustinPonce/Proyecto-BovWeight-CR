@@ -4,8 +4,11 @@ use App\Http\Controllers\Api\AnimalController;
 use App\Http\Controllers\Api\ComentarioController;
 use App\Http\Controllers\Api\DosisController;
 use App\Http\Controllers\Api\FincaController;
+use App\Http\Controllers\Api\MedicamentoController;
 use App\Http\Controllers\Api\PesajeController;
+use App\Http\Controllers\Api\RazaController;
 use App\Http\Controllers\Api\TransaccionController;
+use App\Http\Controllers\Api\UsuarioController;
 use App\Http\Controllers\Api\VeterinarioFincaController;
 use App\Http\Controllers\Auth\AuthController;
 use Illuminate\Http\Request;
@@ -84,5 +87,28 @@ Route::middleware('auth:sanctum')->group(function () {
     // ---- Calculadora de dosis ----
     Route::get('medicamentos',    [DosisController::class, 'medicamentos'])->name('api.medicamentos.index');
     Route::post('dosis/calcular', [DosisController::class, 'calcular'])->name('api.dosis.calcular');
+
+    // ---- Medicamentos CRUD (solo admin) ----
+    Route::post('medicamentos', [MedicamentoController::class, 'store'])
+        ->name('api.medicamentos.store')->middleware('rol:admin');
+    Route::put('medicamentos/{medicamento}', [MedicamentoController::class, 'update'])
+        ->name('api.medicamentos.update')->middleware('rol:admin');
+    Route::delete('medicamentos/{medicamento}', [MedicamentoController::class, 'destroy'])
+        ->name('api.medicamentos.destroy')->middleware('rol:admin');
+
+    // ---- Razas (lectura todos, CRUD solo admin) ----
+    Route::get('razas', [RazaController::class, 'index'])->name('api.razas.index');
+    Route::post('razas', [RazaController::class, 'store'])
+        ->name('api.razas.store')->middleware('rol:admin');
+    Route::put('razas/{raza}', [RazaController::class, 'update'])
+        ->name('api.razas.update')->middleware('rol:admin');
+    Route::delete('razas/{raza}', [RazaController::class, 'destroy'])
+        ->name('api.razas.destroy')->middleware('rol:admin');
+
+    // ---- Gestión de usuarios (solo admin, excluye admins) ----
+    Route::get('usuarios', [UsuarioController::class, 'index'])
+        ->name('api.usuarios.index')->middleware('rol:admin');
+    Route::patch('usuarios/{usuario}/toggle-activo', [UsuarioController::class, 'toggleActivo'])
+        ->name('api.usuarios.toggle-activo')->middleware('rol:admin');
 
 });
