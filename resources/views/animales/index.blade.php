@@ -28,12 +28,22 @@
         <p class="text-sm text-gray-600 mt-1">{{ $animales->count() }} animal(es)</p>
     </div>
 
-    @if ($puedeCrear)
-        <a href="{{ route('animales.create', $fincaSeleccionada ? ['finca' => $fincaSeleccionada->id_finca] : []) }}"
-           class="bg-emerald-700 hover:bg-emerald-800 text-white px-4 py-2 rounded font-medium">
-            + Nuevo animal
+    <div class="flex items-center gap-2">
+        <a href="{{ route('export.animales.pdf', request()->query()) }}"
+           class="bg-red-700 hover:bg-red-800 text-white px-3 py-2 rounded text-sm font-medium">
+            PDF
         </a>
-    @endif
+        <a href="{{ route('export.animales.csv', request()->query()) }}"
+           class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-2 rounded text-sm font-medium">
+            CSV/Excel
+        </a>
+        @if ($puedeCrear)
+            <a href="{{ route('animales.create', $fincaSeleccionada ? ['finca' => $fincaSeleccionada->id_finca] : []) }}"
+               class="bg-emerald-700 hover:bg-emerald-800 text-white px-4 py-2 rounded font-medium">
+                + Nuevo animal
+            </a>
+        @endif
+    </div>
 </div>
 
 @if ($fincaSeleccionada)

@@ -88,6 +88,48 @@
     @endif
 </div>
 
+{{-- Comentarios del veterinario --}}
+@php
+    $comentarios = $animal->comentariosVeterinario()
+        ->with('veterinario')
+        ->orderByDesc('fecha')
+        ->limit(3)
+        ->get();
+@endphp
+
+<div class="bg-white shadow rounded p-5 mt-6">
+    <div class="flex items-center justify-between mb-3">
+        <h2 class="font-semibold text-gray-700">Comentarios del veterinario</h2>
+        <a href="{{ route('animales.comentarios', $animal) }}"
+           class="text-sky-700 hover:underline text-sm">Ver todos →</a>
+    </div>
+
+    @if ($comentarios->isEmpty())
+        <p class="text-sm text-gray-500">Sin comentarios veterinarios todavía.</p>
+    @else
+        <div class="space-y-3">
+            @foreach ($comentarios as $com)
+                <div class="border-l-4 border-sky-300 pl-3">
+                    <p class="text-xs text-gray-500 mb-1">
+                        {{ $com->veterinario->nombre ?? 'Veterinario' }} —
+                        {{ \Illuminate\Support\Carbon::parse($com->fecha)->format('d/m/Y') }}
+                    </p>
+                    <p class="text-sm text-gray-800">{{ Str::limit($com->comentario, 200) }}</p>
+                </div>
+            @endforeach
+        </div>
+    @endif
+
+    @if ($usuario->esVeterinario())
+        <div class="mt-3">
+            <a href="{{ route('animales.comentarios', $animal) }}"
+               class="text-sm bg-sky-50 hover:bg-sky-100 text-sky-700 border border-sky-200 px-3 py-1.5 rounded">
+                + Agregar comentario
+            </a>
+        </div>
+    @endif
+</div>
+
 <div class="mt-6">
     <a href="{{ route('animales.index', ['finca' => $animal->id_finca]) }}"
        class="text-sm text-gray-600 hover:underline">

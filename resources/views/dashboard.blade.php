@@ -95,6 +95,18 @@
             <h3 class="font-semibold text-emerald-700">Historial de pesajes</h3>
             <p class="text-sm text-gray-600 mt-1">Consultar y exportar pesajes registrados.</p>
         </a>
+
+        <a href="{{ route('transacciones.index') }}"
+           class="block bg-white border-l-4 border-amber-500 shadow rounded p-5 hover:shadow-md transition">
+            <h3 class="font-semibold text-amber-700">Transacciones</h3>
+            <p class="text-sm text-gray-600 mt-1">Registrar compras y ventas de ganado en kg en pie.</p>
+        </a>
+
+        <a href="{{ route('dosis.calcular') }}"
+           class="block bg-white border-l-4 border-emerald-500 shadow rounded p-5 hover:shadow-md transition">
+            <h3 class="font-semibold text-emerald-700">Calculadora de dosis</h3>
+            <p class="text-sm text-gray-600 mt-1">Calcular dosis de medicamentos según el peso del animal.</p>
+        </a>
     @endif
 
     {{-- ============================================================ --}}

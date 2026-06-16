@@ -3,11 +3,14 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Mail\LoginNotificationMail;
+use App\Mail\WelcomeMail;
 use App\Models\Usuario;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Password;
 use Illuminate\Validation\ValidationException;
@@ -104,6 +107,9 @@ class AuthController extends Controller
             ], 201);
         }
 
+        // Correo de bienvenida.
+        Mail::to($usuario->correo)->send(new WelcomeMail($usuario));
+
         // Web: iniciamos sesión y mandamos al dashboard.
         Auth::login($usuario);
         $request->session()->regenerate();
@@ -162,6 +168,14 @@ class AuthController extends Controller
         }
 
         $request->session()->regenerate();
+
+        // Notificación de inicio de sesión.
+        $usuario = Auth::user();
+        Mail::to($usuario->correo)->send(new LoginNotificationMail(
+            usuario: $usuario,
+            ip: $request->ip(),
+            fechaHora: now()->format('d/m/Y H:i:s'),
+        ));
 
         return redirect()->intended(route('dashboard'));
     }

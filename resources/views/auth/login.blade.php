@@ -57,10 +57,15 @@
         </button>
     </form>
 
-    <p class="mt-4 text-center text-sm">
-        ¿No tenés cuenta?
-        <a href="{{ route('registro.mostrar') }}" class="text-emerald-700 hover:underline">Registrate aquí</a>
-    </p>
+    <div class="mt-4 flex items-center justify-between text-sm">
+        <p>
+            ¿No tenés cuenta?
+            <a href="{{ route('registro.mostrar') }}" class="text-emerald-700 hover:underline">Registrate aquí</a>
+        </p>
+        <a href="{{ route('password.request') }}" class="text-gray-500 hover:underline">
+            ¿Olvidaste tu contraseña?
+        </a>
+    </div>
 </div>
 
 {{-- Script genérico para los botones "ojito" del show/hide password.
