@@ -104,11 +104,25 @@
 
             {{-- Panel: subir foto --}}
             <div id="panel-foto" class="space-y-4 hidden">
-                <p class="text-sm text-gray-600 bg-sky-50 border border-sky-200 rounded p-3">
-                    Subí una foto de cuerpo completo del animal de costado.
-                    El sistema usa IA para estimar el peso.
-                    <strong>Por ahora el peso es simulado</strong> (se conecta al modelo real en el próximo bloque).
-                </p>
+
+                {{-- RF03: Disclaimer prominente --}}
+                <div class="bg-amber-50 border-l-4 border-amber-400 rounded p-4">
+                    <div class="flex items-start gap-2">
+                        <span class="text-amber-500 text-lg mt-0.5">⚠️</span>
+                        <div>
+                            <p class="font-semibold text-amber-800 text-sm">Estimación orientativa — no es un valor oficial</p>
+                            <p class="text-amber-700 text-xs mt-1">
+                                El peso calculado por IA es una <strong>aproximación</strong> basada en el análisis de la fotografía.
+                                No sustituye una medición en báscula certificada. Para pesajes oficiales usá el método por medidas.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-sky-50 border border-sky-200 rounded p-3 text-sm text-sky-800">
+                    📷 Tomá la foto <strong>de perfil lateral</strong>, con el cuerpo completo visible y buena iluminación.
+                    Evitá fotos de frente, desde atrás o con el animal parcialmente cortado.
+                </div>
 
                 <div>
                     <label class="block text-sm font-medium mb-1">Foto del animal</label>

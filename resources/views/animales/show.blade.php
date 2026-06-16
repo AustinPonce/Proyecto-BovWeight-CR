@@ -67,6 +67,16 @@
     @if ($animal->pesajes->isEmpty())
         <p class="text-sm text-gray-500">Sin pesajes registrados todavía.</p>
     @else
+        {{-- RF10: Gráfica de progreso de peso --}}
+        @php
+            $pesajesOrdenados = $animal->pesajes->sortBy('fecha');
+            $labels = $pesajesOrdenados->map(fn($p) => \Illuminate\Support\Carbon::parse($p->fecha)->format('d/m/Y'))->values();
+            $pesos  = $pesajesOrdenados->map(fn($p) => round((float)$p->peso, 2))->values();
+        @endphp
+        <div class="mb-6">
+            <canvas id="graficaPeso" height="100"></canvas>
+        </div>
+
         <table class="w-full text-sm">
             <thead class="text-gray-600">
                 <tr class="text-left border-b">
@@ -80,11 +90,49 @@
                     <tr>
                         <td class="py-2">{{ \Illuminate\Support\Carbon::parse($p->fecha)->format('d/m/Y H:i') }}</td>
                         <td class="py-2 font-medium">{{ number_format($p->peso, 2) }}</td>
-                        <td class="py-2 text-gray-600">#{{ $p->id_tipo_pesaje }}</td>
+                        <td class="py-2 text-gray-600">{{ $p->id_tipo_pesaje == 1 ? 'Foto IA' : 'Manual' }}</td>
                     </tr>
                 @endforeach
             </tbody>
         </table>
+
+        <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+        <script>
+            new Chart(document.getElementById('graficaPeso'), {
+                type: 'line',
+                data: {
+                    labels: @json($labels),
+                    datasets: [{
+                        label: 'Peso (kg)',
+                        data: @json($pesos),
+                        borderColor: '#15803d',
+                        backgroundColor: 'rgba(21,128,61,0.1)',
+                        borderWidth: 2,
+                        pointRadius: 4,
+                        pointBackgroundColor: '#15803d',
+                        tension: 0.3,
+                        fill: true,
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: ctx => ctx.parsed.y + ' kg'
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: false,
+                            ticks: { callback: v => v + ' kg' }
+                        }
+                    }
+                }
+            });
+        </script>
     @endif
 </div>
 

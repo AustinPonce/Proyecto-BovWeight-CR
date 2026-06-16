@@ -167,6 +167,14 @@ class AuthController extends Controller
             ]);
         }
 
+        // Bloquear usuarios desactivados por el admin.
+        if (! Auth::user()->activo) {
+            Auth::logout();
+            throw ValidationException::withMessages([
+                'cedula' => 'Tu cuenta está desactivada. Contactá al administrador.',
+            ]);
+        }
+
         $request->session()->regenerate();
 
         // Notificación de inicio de sesión.

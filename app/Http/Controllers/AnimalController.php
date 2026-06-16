@@ -41,20 +41,33 @@ class AnimalController extends Controller
             ->with(['finca', 'raza', 'sexo', 'estado'])
             ->whereIn('id_finca', $idsFincasVisibles);
 
-        // Filtro opcional: si vienen con ?finca=5, mostramos solo esa.
-        // (Solo si el usuario tiene acceso a esa finca.)
         if ($request->filled('finca') && in_array((int) $request->finca, $idsFincasVisibles, true)) {
             $query->where('id_finca', $request->finca);
         }
 
+        // RF08 — Búsqueda por arete o nombre
+        if ($request->filled('buscar')) {
+            $term = $request->input('buscar');
+            $query->where(function ($q) use ($term) {
+                $q->where('arete', 'like', "%{$term}%")
+                  ->orWhere('nombre', 'like', "%{$term}%");
+            });
+        }
+
+        // RF12 — Filtro por estado
+        if ($request->filled('estado')) {
+            $query->whereHas('estado', fn ($q) => $q->where('estado', $request->input('estado')));
+        }
+
         $animales = $query->orderBy('arete')->get();
 
-        // Para que la vista pueda mostrar el nombre de la finca seleccionada (si la hay).
         $fincaSeleccionada = $request->filled('finca')
             ? Finca::find($request->finca)
             : null;
 
-        return view('animales.index', compact('animales', 'fincaSeleccionada'));
+        $estados = \App\Models\Estado::orderBy('estado')->get();
+
+        return view('animales.index', compact('animales', 'fincaSeleccionada', 'estados'));
     }
 
     // ==================================================================

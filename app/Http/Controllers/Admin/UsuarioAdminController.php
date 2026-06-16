@@ -88,6 +88,21 @@ class UsuarioAdminController extends Controller
             ->with('exito', 'Usuario actualizado correctamente.');
     }
 
+    public function toggleActivo(Usuario $usuario): RedirectResponse
+    {
+        if ($usuario->cedula === auth()->user()->cedula) {
+            return redirect()->route('admin.usuarios.index')
+                ->with('error', 'No podés desactivar tu propia cuenta.');
+        }
+
+        $usuario->update(['activo' => ! $usuario->activo]);
+
+        $estado = $usuario->activo ? 'activado' : 'desactivado';
+
+        return redirect()->route('admin.usuarios.index')
+            ->with('exito', "Usuario {$usuario->nombre} {$estado} correctamente.");
+    }
+
     public function destroy(Usuario $usuario): RedirectResponse
     {
         if ($usuario->cedula === auth()->user()->cedula) {

@@ -45,6 +45,7 @@ class Usuario extends Authenticatable
         'correo',
         'contrasena',
         'id_tipo_usuario',
+        'activo',
     ];
 
     /**
@@ -64,6 +65,7 @@ class Usuario extends Authenticatable
     {
         return [
             'contrasena' => 'hashed',
+            'activo'     => 'boolean',
         ];
     }
 

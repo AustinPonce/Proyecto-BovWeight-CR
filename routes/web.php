@@ -133,9 +133,10 @@ Route::middleware('auth')->group(function () {
         Route::get('usuarios',              [UsuarioAdminController::class, 'index'])->name('usuarios.index');
         Route::get('usuarios/create',       [UsuarioAdminController::class, 'create'])->name('usuarios.create');
         Route::post('usuarios',             [UsuarioAdminController::class, 'store'])->name('usuarios.store');
-        Route::get('usuarios/{usuario}/edit',   [UsuarioAdminController::class, 'edit'])->name('usuarios.edit');
-        Route::put('usuarios/{usuario}',        [UsuarioAdminController::class, 'update'])->name('usuarios.update');
-        Route::delete('usuarios/{usuario}',     [UsuarioAdminController::class, 'destroy'])->name('usuarios.destroy');
+        Route::get('usuarios/{usuario}/edit',    [UsuarioAdminController::class, 'edit'])->name('usuarios.edit');
+        Route::put('usuarios/{usuario}',         [UsuarioAdminController::class, 'update'])->name('usuarios.update');
+        Route::patch('usuarios/{usuario}/activo',[UsuarioAdminController::class, 'toggleActivo'])->name('usuarios.toggle-activo');
+        Route::delete('usuarios/{usuario}',      [UsuarioAdminController::class, 'destroy'])->name('usuarios.destroy');
 
         // Catálogos
         Route::get('catalogos',                          [CatalogoController::class, 'index'])->name('catalogos.index');

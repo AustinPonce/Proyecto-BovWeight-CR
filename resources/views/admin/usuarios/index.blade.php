@@ -60,6 +60,7 @@
                     <th class="px-4 py-3">Nombre</th>
                     <th class="px-4 py-3">Correo</th>
                     <th class="px-4 py-3">Rol</th>
+                    <th class="px-4 py-3">Estado</th>
                     <th class="px-4 py-3 text-right">Acciones</th>
                 </tr>
             </thead>
@@ -71,17 +72,33 @@
                         <td class="px-4 py-3 text-sm text-gray-600">{{ $u->correo }}</td>
                         <td class="px-4 py-3">
                             <span class="px-2 py-0.5 rounded text-xs @class([
-                                'bg-rose-100 text-rose-800'    => $u->esAdmin(),
+                                'bg-rose-100 text-rose-800'       => $u->esAdmin(),
                                 'bg-emerald-100 text-emerald-800' => $u->esGanadero(),
-                                'bg-sky-100 text-sky-800'      => $u->esVeterinario(),
+                                'bg-sky-100 text-sky-800'         => $u->esVeterinario(),
                             ])">
                                 {{ $u->tipoUsuario->nombre_tipo }}
+                            </span>
+                        </td>
+                        <td class="px-4 py-3">
+                            <span class="px-2 py-0.5 rounded text-xs font-medium @class([
+                                'bg-green-100 text-green-800' => $u->activo,
+                                'bg-gray-200 text-gray-600'   => ! $u->activo,
+                            ])">
+                                {{ $u->activo ? 'Activo' : 'Inactivo' }}
                             </span>
                         </td>
                         <td class="px-4 py-3 text-right space-x-2">
                             <a href="{{ route('admin.usuarios.edit', $u->cedula) }}"
                                class="text-emerald-700 hover:underline text-sm">Editar</a>
                             @if ($u->cedula !== auth()->user()->cedula)
+                                <form method="POST" action="{{ route('admin.usuarios.toggle-activo', $u->cedula) }}" class="inline">
+                                    @csrf
+                                    @method('PATCH')
+                                    <button type="submit"
+                                            class="text-sm hover:underline {{ $u->activo ? 'text-amber-600' : 'text-green-700' }}">
+                                        {{ $u->activo ? 'Desactivar' : 'Activar' }}
+                                    </button>
+                                </form>
                                 <form method="POST" action="{{ route('admin.usuarios.destroy', $u->cedula) }}" class="inline"
                                       onsubmit="return confirm('¿Eliminar al usuario {{ $u->nombre }}?')">
                                     @csrf
