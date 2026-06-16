@@ -1,8 +1,12 @@
 <?php
 
 use App\Http\Controllers\Api\AnimalController;
+use App\Http\Controllers\Api\ComentarioController;
+use App\Http\Controllers\Api\DosisController;
 use App\Http\Controllers\Api\FincaController;
 use App\Http\Controllers\Api\PesajeController;
+use App\Http\Controllers\Api\TransaccionController;
+use App\Http\Controllers\Api\VeterinarioFincaController;
 use App\Http\Controllers\Auth\AuthController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -56,5 +60,29 @@ Route::middleware('auth:sanctum')->group(function () {
         ->only(['index', 'store', 'show', 'destroy'])
         ->names('api.pesajes')
         ->middleware('rol:admin,ganadero,veterinario');
+
+    // ---- Comentarios veterinarios ----
+    Route::prefix('animales/{animal}')->group(function () {
+        Route::get('comentarios',              [ComentarioController::class, 'index'])->name('api.comentarios.index');
+        Route::post('comentarios',             [ComentarioController::class, 'store'])->name('api.comentarios.store');
+        Route::delete('comentarios/{comentario}', [ComentarioController::class, 'destroy'])->name('api.comentarios.destroy');
+    });
+
+    // ---- Veterinarios de una finca ----
+    Route::get('veterinarios/buscar', [VeterinarioFincaController::class, 'buscar'])->name('api.veterinarios.buscar');
+    Route::prefix('fincas/{finca}/veterinarios')->group(function () {
+        Route::get('/',            [VeterinarioFincaController::class, 'index'])->name('api.fincas.veterinarios.index');
+        Route::post('/',           [VeterinarioFincaController::class, 'store'])->name('api.fincas.veterinarios.store');
+        Route::delete('/{cedula}', [VeterinarioFincaController::class, 'destroy'])->name('api.fincas.veterinarios.destroy');
+    });
+
+    // ---- Transacciones ----
+    Route::apiResource('transacciones', TransaccionController::class)
+        ->only(['index', 'store', 'show', 'destroy'])
+        ->names('api.transacciones');
+
+    // ---- Calculadora de dosis ----
+    Route::get('medicamentos',    [DosisController::class, 'medicamentos'])->name('api.medicamentos.index');
+    Route::post('dosis/calcular', [DosisController::class, 'calcular'])->name('api.dosis.calcular');
 
 });
