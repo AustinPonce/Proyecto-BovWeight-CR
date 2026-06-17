@@ -235,12 +235,13 @@
                         pill.classList.toggle('bg-gray-50',     !activo);
                         pill.classList.toggle('text-gray-700',  !activo);
                     });
-
-                    // Si el usuario cambia el tipo después de calcular, reiniciar.
-                    resetResultado();
                 }
-                radios.forEach(r => r.addEventListener('change', actualizarTabs));
-                actualizarTabs();
+                // Al cambiar tab después de un cálculo, reiniciar también el resultado.
+                radios.forEach(r => r.addEventListener('change', () => {
+                    actualizarTabs();
+                    resetResultado();
+                }));
+                actualizarTabs(); // Llamada inicial: sin resetResultado (aún no están las const del paso 2)
 
                 /* --------------------------------------------------------
                    Preview de imagen
@@ -284,6 +285,13 @@
                 }
 
                 btnRecalcular?.addEventListener('click', resetResultado);
+
+                // Los campos disabled no se incluyen en el submit.
+                // Los reactivamos antes de que el form recolecte los datos.
+                document.getElementById('form-pesaje').addEventListener('submit', () => {
+                    document.getElementById('select-arete').disabled = false;
+                    radios.forEach(r => r.disabled = false);
+                });
 
                 /* --------------------------------------------------------
                    Paso 1: Calcular

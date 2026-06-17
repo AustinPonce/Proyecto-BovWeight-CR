@@ -39,7 +39,7 @@ class UsuariosSeeder extends Seeder
             'cedula'          => '100000002',
             'nombre'          => 'Ganadero de Prueba',
             'correo'          => 'ganadero@bovweight.cr',
-            'contrasena'      => $contrasenaComun,
+            'contrasena'      => $contrasenaComu,
             'id_tipo_usuario' => Usuario::ROL_GANADERO,
         ]);
 
@@ -52,3 +52,4 @@ class UsuariosSeeder extends Seeder
         ]);
     }
 }
+n
