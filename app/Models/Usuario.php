@@ -45,6 +45,7 @@ class Usuario extends Authenticatable
         'correo',
         'contrasena',
         'id_tipo_usuario',
+        'activo',
     ];
 
     /**
@@ -64,6 +65,7 @@ class Usuario extends Authenticatable
     {
         return [
             'contrasena' => 'hashed',
+            'activo'     => 'boolean',
         ];
     }
 
@@ -125,5 +127,22 @@ class Usuario extends Authenticatable
             'cedula',
             'id_finca'
         );
+    }
+
+    // Soporte para password reset usando el campo 'correo' en lugar de 'email'.
+    public function getEmailForPasswordReset(): string
+    {
+        return $this->correo;
+    }
+
+    public static function findForPasswordReset(string $email): ?self
+    {
+        return static::where('correo', $email)->first();
+    }
+
+    // Necesario para que la notificación de reset llegue al correo correcto.
+    public function routeNotificationForMail($notification = null): string
+    {
+        return $this->correo;
     }
 }

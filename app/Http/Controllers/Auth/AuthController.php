@@ -3,11 +3,14 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Mail\LoginNotificationMail;
+use App\Mail\WelcomeMail;
 use App\Models\Usuario;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Password;
 use Illuminate\Validation\ValidationException;
@@ -104,6 +107,9 @@ class AuthController extends Controller
             ], 201);
         }
 
+        // Correo de bienvenida.
+        Mail::to($usuario->correo)->send(new WelcomeMail($usuario));
+
         // Web: iniciamos sesión y mandamos al dashboard.
         Auth::login($usuario);
         $request->session()->regenerate();
@@ -143,13 +149,19 @@ class AuthController extends Controller
                 ]);
             }
 
+            if (! $usuario->activo) {
+                return response()->json([
+                    'message' => 'Tu cuenta está desactivada. Contactá al administrador.',
+                ], 403);
+            }
+
             // Borra tokens previos del mismo dispositivo (opcional, pero ordena la tabla).
             $usuario->tokens()->where('name', 'app-movil')->delete();
             $token = $usuario->createToken('app-movil')->plainTextToken;
 
             return response()->json([
                 'mensaje' => 'Login exitoso',
-                'usuario' => $usuario,
+                'usuario' => $usuario->load('tipoUsuario'),
                 'token'   => $token,
             ]);
         }
@@ -161,7 +173,23 @@ class AuthController extends Controller
             ]);
         }
 
+        // Bloquear usuarios desactivados por el admin.
+        if (! Auth::user()->activo) {
+            Auth::logout();
+            throw ValidationException::withMessages([
+                'cedula' => 'Tu cuenta está desactivada. Contactá al administrador.',
+            ]);
+        }
+
         $request->session()->regenerate();
+
+        // Notificación de inicio de sesión.
+        $usuario = Auth::user();
+        Mail::to($usuario->correo)->send(new LoginNotificationMail(
+            usuario: $usuario,
+            ip: $request->ip(),
+            fechaHora: now()->format('d/m/Y H:i:s'),
+        ));
 
         return redirect()->intended(route('dashboard'));
     }

@@ -41,14 +41,110 @@
     {{-- Veterinarios asignados --}}
     <div class="bg-white shadow rounded p-5">
         <h2 class="font-semibold text-gray-700 mb-3">Veterinarios asignados</h2>
+
         @if ($finca->veterinarios->isEmpty())
-            <p class="text-sm text-gray-500">Sin veterinarios asignados.</p>
+            <p class="text-sm text-gray-500 mb-3">Sin veterinarios asignados.</p>
         @else
-            <ul class="text-sm space-y-1">
+            <ul class="text-sm space-y-2 mb-3">
                 @foreach ($finca->veterinarios as $vet)
-                    <li>• {{ $vet->nombre }} <span class="text-gray-500 font-mono text-xs">({{ $vet->cedula }})</span></li>
+                    <li class="flex items-center justify-between">
+                        <span>
+                            {{ $vet->nombre }}
+                            <span class="text-gray-500 font-mono text-xs">({{ $vet->cedula }})</span>
+                        </span>
+                        @if ($puedeEditar)
+                            <form method="POST"
+                                  action="{{ route('fincas.veterinarios.destroy', [$finca, $vet->cedula]) }}"
+                                  onsubmit="return confirm('¿Desasignar a {{ $vet->nombre }}?')">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="text-red-600 hover:underline text-xs">Quitar</button>
+                            </form>
+                        @endif
+                    </li>
                 @endforeach
             </ul>
+        @endif
+
+        {{-- Formulario para asignar veterinario (solo dueño o admin) --}}
+        @if ($puedeEditar)
+            <div class="border-t pt-3">
+                <p class="text-xs font-medium text-gray-600 mb-2">Asignar veterinario</p>
+                <form method="POST" action="{{ route('fincas.veterinarios.store', $finca) }}" class="space-y-2">
+                    @csrf
+                    <div>
+                        <input type="text" id="vet-buscar" placeholder="Nombre o cédula del veterinario"
+                               class="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                               autocomplete="off">
+                        <input type="hidden" name="cedula_veterinario" id="vet-cedula">
+                        <div id="vet-resultados"
+                             class="hidden border border-gray-200 rounded bg-white shadow-lg mt-1 max-h-48 overflow-y-auto z-10 absolute">
+                        </div>
+                    </div>
+                    <div id="vet-seleccionado" class="hidden text-sm text-emerald-700 font-medium"></div>
+                    <button type="submit" id="vet-btn" disabled
+                            class="w-full bg-emerald-700 hover:bg-emerald-800 text-white text-sm py-2 rounded disabled:opacity-50 disabled:cursor-not-allowed">
+                        Asignar
+                    </button>
+                </form>
+            </div>
+
+            <script>
+            (function() {
+                const input = document.getElementById('vet-buscar');
+                const hiddenInput = document.getElementById('vet-cedula');
+                const resultados = document.getElementById('vet-resultados');
+                const seleccionado = document.getElementById('vet-seleccionado');
+                const btn = document.getElementById('vet-btn');
+                let timeout;
+
+                input.addEventListener('input', () => {
+                    clearTimeout(timeout);
+                    hiddenInput.value = '';
+                    btn.disabled = true;
+                    seleccionado.classList.add('hidden');
+
+                    const q = input.value.trim();
+                    if (q.length < 2) { resultados.classList.add('hidden'); return; }
+
+                    timeout = setTimeout(() => {
+                        fetch(`{{ route('veterinarios.buscar') }}?q=${encodeURIComponent(q)}`, {
+                            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                        })
+                        .then(r => r.json())
+                        .then(data => {
+                            resultados.innerHTML = '';
+                            if (!data.length) {
+                                resultados.innerHTML = '<p class="px-3 py-2 text-sm text-gray-500">Sin resultados.</p>';
+                            } else {
+                                data.forEach(v => {
+                                    const el = document.createElement('button');
+                                    el.type = 'button';
+                                    el.className = 'w-full text-left px-3 py-2 text-sm hover:bg-emerald-50';
+                                    el.textContent = `${v.nombre} (${v.cedula})`;
+                                    el.addEventListener('click', () => {
+                                        hiddenInput.value = v.cedula;
+                                        input.value = `${v.nombre} (${v.cedula})`;
+                                        seleccionado.textContent = `Veterinario seleccionado: ${v.nombre}`;
+                                        seleccionado.classList.remove('hidden');
+                                        btn.disabled = false;
+                                        resultados.classList.add('hidden');
+                                    });
+                                    resultados.appendChild(el);
+                                });
+                            }
+                            resultados.classList.remove('hidden');
+                        });
+                    }, 300);
+                });
+
+                document.addEventListener('click', e => {
+                    if (!resultados.contains(e.target) && e.target !== input) {
+                        resultados.classList.add('hidden');
+                    }
+                });
+            })();
+            </script>
         @endif
     </div>
 </div>
