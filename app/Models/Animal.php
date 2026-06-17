@@ -66,6 +66,11 @@ class Animal extends Model
         return $this->hasMany(Transaccion::class, 'arete', 'arete');
     }
 
+    public function recordatorios(): HasMany
+    {
+        return $this->hasMany(Recordatorio::class, 'arete', 'arete');
+    }
+
     // ------------------------------------------------------------------
     // Local Scope: filtrado por rol — delega en el scope de Finca
     // ------------------------------------------------------------------

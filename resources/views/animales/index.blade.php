@@ -35,7 +35,11 @@
         </a>
         <a href="{{ route('export.animales.csv', request()->query()) }}"
            class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-2 rounded text-sm font-medium">
-            CSV/Excel
+            CSV
+        </a>
+        <a href="{{ route('export.animales.xlsx', request()->query()) }}"
+           class="bg-green-700 hover:bg-green-800 text-white px-3 py-2 rounded text-sm font-medium">
+            Excel
         </a>
         @if ($puedeCrear)
             <a href="{{ route('animales.create', $fincaSeleccionada ? ['finca' => $fincaSeleccionada->id_finca] : []) }}"

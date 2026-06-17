@@ -41,9 +41,20 @@ class PesajeRequest extends FormRequest
 
     public function rules(): array
     {
+        // Cuando viene del paso 2 (confirmación), la imagen ya fue guardada
+        // en el paso 1 (calcular) y llega como string en imagen_guardada.
+        $imagenYaGuardada = $this->filled('imagen_guardada');
+
         $reglas = [
-            'arete' => ['required', 'string', Rule::exists('Animal', 'arete')],
-            'tipo'  => ['required', Rule::in(['manual', 'foto'])],
+            'arete'               => ['required', 'string', Rule::exists('Animal', 'arete')],
+            'tipo'                => ['required', Rule::in(['manual', 'foto'])],
+            // RF04: peso manual opcional — ingresado en la pantalla de confirmación
+            'peso_manual'         => ['nullable', 'numeric', 'min:1', 'max:2000'],
+            // Campos del flujo de dos pasos (paso 2)
+            'imagen_guardada'     => ['nullable', 'string'],
+            'peso_calculado'      => ['nullable', 'numeric', 'min:0'],
+            'peso_original_calc'  => ['nullable', 'numeric', 'min:0'],
+            'factor_raza_calc'    => ['nullable', 'numeric', 'min:0'],
         ];
 
         if ($this->input('tipo') === 'manual') {
@@ -55,7 +66,7 @@ class PesajeRequest extends FormRequest
             ];
         }
 
-        if ($this->input('tipo') === 'foto') {
+        if ($this->input('tipo') === 'foto' && ! $imagenYaGuardada) {
             // 5MB max; formatos comunes para fotos de campo.
             $reglas['imagen'] = ['required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'];
         }
@@ -79,6 +90,10 @@ class PesajeRequest extends FormRequest
             'imagen.image'    => 'El archivo debe ser una imagen.',
             'imagen.mimes'    => 'La imagen debe ser JPG, PNG o WEBP.',
             'imagen.max'      => 'La imagen no puede pesar más de 5 MB.',
+
+            'peso_manual.numeric' => 'El peso ingresado debe ser un número.',
+            'peso_manual.min'     => 'El peso debe ser al menos 1 kg.',
+            'peso_manual.max'     => 'El peso no puede superar 2000 kg.',
         ];
     }
 }

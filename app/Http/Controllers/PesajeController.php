@@ -12,9 +12,11 @@ use App\Services\CalculadorPesoContext;
 use App\Strategies\FormulaManualStrategy;
 use App\Strategies\FotoIAWeightStrategy;
 use Carbon\Carbon;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
 /**
@@ -92,7 +94,66 @@ class PesajeController extends Controller
     }
 
     // ==================================================================
-    // GUARDAR  — POST /pesajes
+    // CALCULAR (paso 1 del flujo RF04) — POST /pesajes/calcular
+    // Calcula el peso estimado y guarda la imagen (si aplica) SIN crear
+    // el registro en BD. Devuelve JSON para que el JS muestre el resultado.
+    // ==================================================================
+    public function calcular(Request $request): JsonResponse
+    {
+        $datos = $request->validate([
+            'arete'              => ['required', 'string', Rule::exists('Animal', 'arete')],
+            'tipo'               => ['required', Rule::in(['manual', 'foto'])],
+            'largo_cuerpo'       => ['required_if:tipo,manual', 'nullable', 'numeric', 'min:30', 'max:300'],
+            'altura'             => ['required_if:tipo,manual', 'nullable', 'numeric', 'min:30', 'max:200'],
+            'perimetro_toracico' => ['required_if:tipo,manual', 'nullable', 'numeric', 'min:30', 'max:300'],
+            'imagen'             => ['required_if:tipo,foto', 'nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
+        ]);
+
+        $this->autorizarAnimal($request, $datos['arete']);
+
+        // Guardar imagen (si aplica) para tenerla disponible en el paso 2.
+        $pathImagen = null;
+        if ($request->hasFile('imagen')) {
+            $pathImagen = $request->file('imagen')->store('pesajes', 'public');
+        }
+
+        // Elegir estrategia y calcular.
+        $strategy = $this->resolverStrategy($datos['tipo']);
+        $context  = new CalculadorPesoContext($strategy);
+
+        $datosCalculo = $datos['tipo'] === 'manual'
+            ? [
+                'largo_cuerpo'       => (float) $datos['largo_cuerpo'],
+                'altura'             => (float) $datos['altura'],
+                'perimetro_toracico' => (float) $datos['perimetro_toracico'],
+            ]
+            : ['imagen' => $pathImagen];
+
+        try {
+            $pesoOriginal = $context->calcular($datosCalculo);
+        } catch (NoBovinoDetectadoException $e) {
+            if ($pathImagen) {
+                Storage::disk('public')->delete($pathImagen);
+            }
+            return response()->json(['error' => $e->mensajeUsuario], 422);
+        }
+
+        // RF13 — Factor de corrección por raza.
+        $animal        = Animal::with('raza')->whereKey($datos['arete'])->first();
+        $factorRaza    = (float) ($animal->raza->factor_correccion ?? 1.0);
+        $pesoCalculado = round($pesoOriginal * $factorRaza, 2);
+
+        return response()->json([
+            'peso_calculado'     => $pesoCalculado,
+            'peso_original_calc' => round($pesoOriginal, 2),
+            'factor_raza_calc'   => $factorRaza,
+            'imagen_guardada'    => $pathImagen ?? '',
+        ]);
+    }
+
+    // ==================================================================
+    // GUARDAR (paso 2 del flujo RF04) — POST /pesajes
+    // Recibe los datos pre-calculados del paso 1 y persiste el Pesaje.
     // ==================================================================
     public function store(PesajeRequest $request): RedirectResponse
     {
@@ -101,53 +162,66 @@ class PesajeController extends Controller
         // 1) Verificar que el animal sea uno que el usuario tiene permitido.
         $this->autorizarAnimal($request, $datos['arete']);
 
-        // 2) Si viene imagen, guardarla AHORA en storage para tener el path
-        //    disponible para el microservicio ML.
-        $pathImagen = null;
-        if ($request->hasFile('imagen')) {
-            $pathImagen = $request->file('imagen')->store('pesajes', 'public');
-        }
+        // 2) Imagen y peso: si vienen del paso 1 (calcular), ya están listos.
+        //    Si no (flujo directo sin JS), calcular de nuevo.
+        $pathImagen    = null;
+        $pesoOriginal  = 0;
+        $factorRaza    = 1.0;
+        $pesoCorregido = 0;
 
-        // 3) Elegir la estrategia (PATRÓN STRATEGY).
-        $strategy = $this->resolverStrategy($datos['tipo']);
-        $context  = new CalculadorPesoContext($strategy);
+        $usoDosParos = ! empty($datos['imagen_guardada']) || ! empty($datos['peso_calculado']);
 
-        // 4) Armar el array de datos para la estrategia.
-        //    Manual → medidas corporales. Foto → path en disk 'public'.
-        $datosCalculo = $datos['tipo'] === 'manual'
-            ? [
-                'largo_cuerpo'       => (float) $datos['largo_cuerpo'],
-                'altura'             => (float) $datos['altura'],
-                'perimetro_toracico' => (float) $datos['perimetro_toracico'],
-            ]
-            : [
-                'imagen' => $pathImagen, // se manda al microservicio Python
-            ];
-
-        // 5) Calcular el peso. Si el ML está caído, la strategy hace fallback al mock.
-        //    Si el ML respondió pero NO detectó una vaca, levanta NoBovinoDetectadoException;
-        //    en ese caso borramos la imagen subida (no la queremos guardar) y devolvemos
-        //    el error al usuario (requerimiento #2: solo bovinos).
-        try {
-            $pesoOriginal = $context->calcular($datosCalculo);
-        } catch (NoBovinoDetectadoException $e) {
-            if ($pathImagen) {
-                Storage::disk('public')->delete($pathImagen);
+        if ($usoDosParos) {
+            // --- Paso 2: valores ya calculados en calcular() ---
+            $pathImagen    = $datos['imagen_guardada'] ?: null;
+            $pesoOriginal  = (float) ($datos['peso_original_calc'] ?? $datos['peso_calculado']);
+            $factorRaza    = (float) ($datos['factor_raza_calc'] ?? 1.0);
+            $pesoCorregido = round((float) $datos['peso_calculado'], 2);
+        } else {
+            // --- Flujo directo (fallback si JS está desactivado) ---
+            if ($request->hasFile('imagen')) {
+                $pathImagen = $request->file('imagen')->store('pesajes', 'public');
             }
-            return redirect()
-                ->route('pesajes.create', ['animal' => $datos['arete']])
-                ->withInput()
-                ->withErrors(['imagen' => $e->mensajeUsuario]);
+
+            $strategy = $this->resolverStrategy($datos['tipo']);
+            $context  = new CalculadorPesoContext($strategy);
+
+            $datosCalculo = $datos['tipo'] === 'manual'
+                ? [
+                    'largo_cuerpo'       => (float) $datos['largo_cuerpo'],
+                    'altura'             => (float) $datos['altura'],
+                    'perimetro_toracico' => (float) $datos['perimetro_toracico'],
+                ]
+                : ['imagen' => $pathImagen];
+
+            try {
+                $pesoOriginal = $context->calcular($datosCalculo);
+            } catch (NoBovinoDetectadoException $e) {
+                if ($pathImagen) {
+                    Storage::disk('public')->delete($pathImagen);
+                }
+                return redirect()
+                    ->route('pesajes.create', ['animal' => $datos['arete']])
+                    ->withInput()
+                    ->withErrors(['imagen' => $e->mensajeUsuario]);
+            }
+
+            $animal        = Animal::with('raza')->whereKey($datos['arete'])->first();
+            $factorRaza    = (float) ($animal->raza->factor_correccion ?? 1.0);
+            $pesoCorregido = round($pesoOriginal * $factorRaza, 2);
         }
 
-        // 6) RF13 — Factor de corrección por raza.
-        //    Cargamos el animal con su raza para leer el factor_correccion.
-        $animal        = Animal::with('raza')->whereKey($datos['arete'])->first();
-        $factorRaza    = (float) ($animal->raza->factor_correccion ?? 1.0);
-        $pesoCorregido = round($pesoOriginal * $factorRaza, 2);
-        $pesoFinal     = $pesoCorregido; // el campo `peso` siempre guarda el valor corregido
+        $pesoFinal = $pesoCorregido;
 
-        // 7) Crear el Pesaje. Los Observers se disparan automáticamente acá:
+        // RF04 — Si el usuario ingresó un peso manual en la pantalla de confirmación,
+        //        ese valor reemplaza la estimación como peso oficial del registro.
+        $fueCorrectionManual = false;
+        if (! empty($datos['peso_manual']) && (float) $datos['peso_manual'] > 0) {
+            $pesoFinal           = round((float) $datos['peso_manual'], 2);
+            $fueCorrectionManual = true;
+        }
+
+        // 3) Crear el Pesaje. Los Observers se disparan automáticamente:
         //    - AuditoriaPesajeObserver  → log de auditoría + BD
         //    - CrearNotificacionObserver → notificación si hay recordatorio
         //    - VerificarPesoObserver    → alerta sanitaria si peso < 100
@@ -163,13 +237,16 @@ class PesajeController extends Controller
             'id_tipo_pesaje' => $this->resolverTipoPesajeId($datos['tipo']),
         ]);
 
-        $msgFactor = $factorRaza != 1.0
+        $msgFactor    = $factorRaza != 1.0
             ? " (original: {$pesoOriginal} kg × factor {$factorRaza} raza)"
+            : '';
+        $msgCorreccion = $fueCorrectionManual
+            ? ' [peso ingresado manualmente]'
             : '';
 
         return redirect()
             ->route('animales.show', $datos['arete'])
-            ->with('exito', "Pesaje registrado: {$pesoFinal} kg.{$msgFactor}");
+            ->with('exito', "Pesaje registrado: {$pesoFinal} kg.{$msgFactor}{$msgCorreccion}");
     }
 
     // ==================================================================

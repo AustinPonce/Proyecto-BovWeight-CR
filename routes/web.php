@@ -13,6 +13,7 @@ use App\Http\Controllers\DosisController;
 use App\Http\Controllers\ExportController;
 use App\Http\Controllers\FincaController;
 use App\Http\Controllers\PesajeController;
+use App\Http\Controllers\RecordatorioController;
 use App\Http\Controllers\TransaccionController;
 use App\Http\Controllers\VeterinarioFincaController;
 use Illuminate\Support\Facades\Route;
@@ -91,8 +92,25 @@ Route::middleware('auth')->group(function () {
         ->name('animales.comentarios.destroy');
 
     // ------------------------------------------------------------------
+    // RF22 — RECORDATORIOS DE RE-PESAJE
+    // ------------------------------------------------------------------
+    Route::middleware('rol:admin,ganadero')->group(function () {
+        Route::get('animales/{animal}/recordatorios',                    [RecordatorioController::class, 'index'])
+            ->name('animales.recordatorios.index');
+        Route::post('animales/{animal}/recordatorios',                   [RecordatorioController::class, 'store'])
+            ->name('animales.recordatorios.store');
+        Route::delete('animales/{animal}/recordatorios/{recordatorio}',  [RecordatorioController::class, 'destroy'])
+            ->name('animales.recordatorios.destroy');
+    });
+
+    // ------------------------------------------------------------------
     // PESAJES
     // ------------------------------------------------------------------
+    // RF04: endpoint de cálculo previo (paso 1 del flujo de dos pasos)
+    Route::post('pesajes/calcular', [PesajeController::class, 'calcular'])
+        ->middleware('rol:admin,ganadero')
+        ->name('pesajes.calcular');
+
     Route::resource('pesajes', PesajeController::class)
         ->only(['index', 'create', 'store', 'show', 'destroy'])
         ->middleware('rol:admin,ganadero,veterinario');
@@ -101,10 +119,12 @@ Route::middleware('auth')->group(function () {
     // EXPORTACIONES (PDF y CSV)
     // ------------------------------------------------------------------
     Route::middleware('rol:admin,ganadero,veterinario')->prefix('exportar')->name('export.')->group(function () {
-        Route::get('pesajes/pdf', [ExportController::class, 'pesajesPdf'])->name('pesajes.pdf');
-        Route::get('pesajes/csv', [ExportController::class, 'pesajesCsv'])->name('pesajes.csv');
-        Route::get('animales/pdf',[ExportController::class, 'animalesPdf'])->name('animales.pdf');
-        Route::get('animales/csv',[ExportController::class, 'animalesCsv'])->name('animales.csv');
+        Route::get('pesajes/pdf',  [ExportController::class, 'pesajesPdf']) ->name('pesajes.pdf');
+        Route::get('pesajes/csv',  [ExportController::class, 'pesajesCsv']) ->name('pesajes.csv');
+        Route::get('pesajes/xlsx', [ExportController::class, 'pesajesXlsx'])->name('pesajes.xlsx');  // RF25
+        Route::get('animales/pdf', [ExportController::class, 'animalesPdf'])->name('animales.pdf');
+        Route::get('animales/csv', [ExportController::class, 'animalesCsv'])->name('animales.csv');
+        Route::get('animales/xlsx',[ExportController::class, 'animalesXlsx'])->name('animales.xlsx'); // RF25
     });
 
     // ------------------------------------------------------------------

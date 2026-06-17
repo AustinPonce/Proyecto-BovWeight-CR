@@ -14,4 +14,13 @@ class Notificacion extends Model
     public $timestamps = false;
 
     protected $fillable = ['mensaje', 'fecha_envio', 'id_recordatorio'];
+
+    protected $casts = [
+        'fecha_envio' => 'datetime',
+    ];
+
+    public function recordatorio()
+    {
+        return $this->belongsTo(Recordatorio::class, 'id_recordatorio', 'id_recordatorio');
+    }
 }

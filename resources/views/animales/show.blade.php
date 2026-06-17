@@ -178,6 +178,98 @@
     @endif
 </div>
 
+{{-- ------------------------------------------------------------------ --}}
+{{-- RF22 — Recordatorios de re-pesaje (solo ganadero y admin)         --}}
+{{-- ------------------------------------------------------------------ --}}
+@if (! auth()->user()->esVeterinario())
+<div class="bg-white shadow rounded p-5 mt-6">
+    <div class="flex items-center justify-between mb-4">
+        <h2 class="font-semibold text-gray-700">Recordatorios de re-pesaje</h2>
+    </div>
+
+    @if (session('exito'))
+        <div class="mb-3 bg-emerald-50 border border-emerald-200 text-emerald-800 text-sm px-4 py-2 rounded">
+            {{ session('exito') }}
+        </div>
+    @endif
+
+    {{-- Formulario para crear recordatorio --}}
+    <form method="POST"
+          action="{{ route('animales.recordatorios.store', $animal) }}"
+          class="flex flex-wrap items-end gap-3 mb-5 bg-gray-50 border border-gray-200 rounded p-4">
+        @csrf
+
+        <div>
+            <label class="block text-xs font-medium text-gray-600 mb-1">Frecuencia</label>
+            <select name="frecuencia" required
+                    class="border border-gray-300 rounded px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                <option value="">Seleccioná…</option>
+                <option value="semanal">Semanal (cada 7 días)</option>
+                <option value="quincenal">Quincenal (cada 15 días)</option>
+                <option value="mensual">Mensual (cada 30 días)</option>
+                <option value="trimestral">Trimestral (cada 90 días)</option>
+            </select>
+            @error('frecuencia')
+                <p class="text-red-600 text-xs mt-1">{{ $message }}</p>
+            @enderror
+        </div>
+
+        <div>
+            <label class="block text-xs font-medium text-gray-600 mb-1">Fecha de inicio</label>
+            <input type="date" name="fecha_inicio" required
+                   value="{{ old('fecha_inicio', now()->format('Y-m-d')) }}"
+                   class="border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
+            @error('fecha_inicio')
+                <p class="text-red-600 text-xs mt-1">{{ $message }}</p>
+            @enderror
+        </div>
+
+        <button type="submit"
+                class="bg-emerald-700 hover:bg-emerald-800 text-white px-4 py-2 rounded text-sm font-medium">
+            + Agregar recordatorio
+        </button>
+    </form>
+
+    {{-- Lista de recordatorios activos --}}
+    @if ($animal->recordatorios->isEmpty())
+        <p class="text-sm text-gray-500">No hay recordatorios configurados para este animal.</p>
+    @else
+        <div class="space-y-3">
+            @foreach ($animal->recordatorios as $rec)
+                <div class="flex items-start justify-between border border-gray-100 rounded p-3 bg-gray-50">
+                    <div>
+                        <p class="text-sm font-medium text-gray-800 capitalize">
+                            {{ $rec->frecuencia }}
+                            <span class="text-gray-500 font-normal text-xs">
+                                — iniciado {{ \Carbon\Carbon::parse($rec->fecha_inicio)->format('d/m/Y') }}
+                            </span>
+                        </p>
+                        <p class="text-xs text-emerald-700 mt-0.5">
+                            Próximo pesaje: {{ $rec->proximaFecha()->format('d/m/Y') }}
+                        </p>
+                        @if ($rec->notificaciones->isNotEmpty())
+                            <p class="text-xs text-gray-500 mt-0.5">
+                                Última notificación: {{ $rec->notificaciones->first()->fecha_envio->format('d/m/Y H:i') }}
+                            </p>
+                        @endif
+                    </div>
+                    <form method="POST"
+                          action="{{ route('animales.recordatorios.destroy', [$animal, $rec]) }}"
+                          onsubmit="return confirm('¿Eliminar este recordatorio?')">
+                        @csrf
+                        @method('DELETE')
+                        <button type="submit"
+                                class="text-xs text-red-600 hover:underline">
+                            Eliminar
+                        </button>
+                    </form>
+                </div>
+            @endforeach
+        </div>
+    @endif
+</div>
+@endif
+
 <div class="mt-6">
     <a href="{{ route('animales.index', ['finca' => $animal->id_finca]) }}"
        class="text-sm text-gray-600 hover:underline">

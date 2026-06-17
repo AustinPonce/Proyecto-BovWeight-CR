@@ -121,7 +121,10 @@ class AnimalController extends Controller
     {
         $this->autorizarAcceso($animal);
 
-        $animal->load(['finca', 'raza', 'sexo', 'estado', 'pesajes']);
+        $animal->load([
+            'finca', 'raza', 'sexo', 'estado', 'pesajes',
+            'recordatorios.notificaciones',   // RF22
+        ]);
 
         return view('animales.show', compact('animal'));
     }

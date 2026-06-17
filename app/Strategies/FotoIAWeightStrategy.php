@@ -58,7 +58,7 @@ class FotoIAWeightStrategy implements ICalculadorPeso
         }
 
         $url = rtrim(config('services.ml.url', env('ML_SERVICE_URL', 'http://127.0.0.1:5000')), '/');
-        $timeout = (int) env('ML_SERVICE_TIMEOUT', 30);
+        $timeout = (int) env('ML_SERVICE_TIMEOUT', 20); // RNF01: máximo 20 s
 
         try {
             $response = Http::timeout($timeout)
