@@ -3,12 +3,18 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Mail\LoginNotificationMail;
+use App\Mail\WelcomeMail;
+use App\Models\Auditoria;
 use App\Models\Usuario;
+use App\Services\AuditoriaService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Rules\Password;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
@@ -60,12 +66,23 @@ class AuthController extends Controller
     public function registrar(Request $request): JsonResponse|RedirectResponse
     {
         // 1) Validación de entrada. Las reglas reflejan los constraints del esquema:
-        //    cedula único, máx 20 chars; correo único, máx 100; contraseña mínima 8.
+        //    cedula único, máx 20 chars; correo único, máx 100.
+        //
+        //    Contraseña segura (requerimiento #14):
+        //      - mínimo 8 caracteres
+        //      - al menos una mayúscula
+        //      - al menos una minúscula
+        //      - al menos un símbolo
+        //    La regla Password::min(8)->mixedCase()->symbols() encapsula esto.
         $datos = $request->validate([
             'cedula'          => ['required', 'string', 'max:20', 'unique:Usuario,cedula'],
             'nombre'          => ['required', 'string', 'max:100'],
             'correo'          => ['required', 'email', 'max:100', 'unique:Usuario,correo'],
-            'contrasena'      => ['required', 'string', 'min:8', 'confirmed'],
+            'contrasena'      => [
+                'required',
+                'confirmed',
+                Password::min(8)->mixedCase()->symbols(),
+            ],
             'id_tipo_usuario' => [
                 'required',
                 'integer',
@@ -80,6 +97,15 @@ class AuthController extends Controller
         // 2) Creación. El cast 'hashed' del modelo se encarga del bcrypt automáticamente.
         $usuario = Usuario::create($datos);
 
+        // RF21 — Auditoría: registro de nuevo usuario.
+        AuditoriaService::registrar(
+            accion:       Auditoria::ACCION_REGISTRO,
+            modulo:       Auditoria::MODULO_AUTH,
+            descripcion:  "Nuevo usuario registrado: {$usuario->nombre} (cédula: {$usuario->cedula}, rol: {$usuario->id_tipo_usuario}).",
+            datosDespues: ['cedula' => $usuario->cedula, 'nombre' => $usuario->nombre, 'id_tipo_usuario' => $usuario->id_tipo_usuario],
+            cedula:       $usuario->cedula,
+        );
+
         // 3) Respuesta diferenciada por tipo de cliente.
         if ($request->expectsJson()) {
             // Móvil: devolvemos token Sanctum para llamadas autenticadas siguientes.
@@ -91,6 +117,9 @@ class AuthController extends Controller
                 'token'   => $token,
             ], 201);
         }
+
+        // Correo de bienvenida.
+        Mail::to($usuario->correo)->send(new WelcomeMail($usuario));
 
         // Web: iniciamos sesión y mandamos al dashboard.
         Auth::login($usuario);
@@ -131,13 +160,27 @@ class AuthController extends Controller
                 ]);
             }
 
+            if (! $usuario->activo) {
+                return response()->json([
+                    'message' => 'Tu cuenta está desactivada. Contactá al administrador.',
+                ], 403);
+            }
+
             // Borra tokens previos del mismo dispositivo (opcional, pero ordena la tabla).
             $usuario->tokens()->where('name', 'app-movil')->delete();
             $token = $usuario->createToken('app-movil')->plainTextToken;
 
+            // RF21 — Auditoría: login desde la app móvil.
+            AuditoriaService::registrar(
+                accion:      Auditoria::ACCION_LOGIN,
+                modulo:      Auditoria::MODULO_AUTH,
+                descripcion: "Login exitoso (API) para {$usuario->nombre} (cédula: {$usuario->cedula}).",
+                cedula:      $usuario->cedula,
+            );
+
             return response()->json([
                 'mensaje' => 'Login exitoso',
-                'usuario' => $usuario,
+                'usuario' => $usuario->load('tipoUsuario'),
                 'token'   => $token,
             ]);
         }
@@ -149,7 +192,31 @@ class AuthController extends Controller
             ]);
         }
 
+        // Bloquear usuarios desactivados por el admin.
+        if (! Auth::user()->activo) {
+            Auth::logout();
+            throw ValidationException::withMessages([
+                'cedula' => 'Tu cuenta está desactivada. Contactá al administrador.',
+            ]);
+        }
+
         $request->session()->regenerate();
+
+        // Notificación de inicio de sesión.
+        $usuario = Auth::user();
+        Mail::to($usuario->correo)->send(new LoginNotificationMail(
+            usuario: $usuario,
+            ip: $request->ip(),
+            fechaHora: now()->format('d/m/Y H:i:s'),
+        ));
+
+        // RF21 — Auditoría: login web.
+        AuditoriaService::registrar(
+            accion:      Auditoria::ACCION_LOGIN,
+            modulo:      Auditoria::MODULO_AUTH,
+            descripcion: "Login exitoso (web) para {$usuario->nombre} (cédula: {$usuario->cedula}).",
+            cedula:      $usuario->cedula,
+        );
 
         return redirect()->intended(route('dashboard'));
     }
@@ -161,10 +228,31 @@ class AuthController extends Controller
     public function logout(Request $request): JsonResponse|RedirectResponse
     {
         if ($request->expectsJson()) {
+            $usuario = $request->user();
+
+            // RF21 — Auditoría: logout API.
+            AuditoriaService::registrar(
+                accion:      Auditoria::ACCION_LOGOUT,
+                modulo:      Auditoria::MODULO_AUTH,
+                descripcion: "Logout (API) para {$usuario->nombre} (cédula: {$usuario->cedula}).",
+                cedula:      $usuario->cedula,
+            );
+
             // Móvil: revocamos solo el token usado en esta llamada (no todos).
-            $request->user()->currentAccessToken()->delete();
+            $usuario->currentAccessToken()->delete();
 
             return response()->json(['mensaje' => 'Sesión cerrada']);
+        }
+
+        // RF21 — Auditoría: logout web.
+        $usuario = Auth::user();
+        if ($usuario) {
+            AuditoriaService::registrar(
+                accion:      Auditoria::ACCION_LOGOUT,
+                modulo:      Auditoria::MODULO_AUTH,
+                descripcion: "Logout (web) para {$usuario->nombre} (cédula: {$usuario->cedula}).",
+                cedula:      $usuario->cedula,
+            );
         }
 
         // Web: cerramos sesión e invalidamos cookies.

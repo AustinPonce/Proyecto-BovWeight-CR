@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Contracts\ICalculadorPeso;
+use App\Exceptions\NoBovinoDetectadoException;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\PesajeRequest;
 use App\Http\Resources\PesajeResource;
@@ -15,6 +16,7 @@ use App\Strategies\FotoIAWeightStrategy;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 /**
  * API REST de Pesajes (app móvil Ionic).
@@ -60,6 +62,12 @@ class PesajeController extends Controller
             return response()->json(['mensaje' => 'No tenés permiso para ese animal'], 403);
         }
 
+        // Guardar imagen primero para tener el path antes de calcular.
+        $pathImagen = null;
+        if ($request->hasFile('imagen')) {
+            $pathImagen = $request->file('imagen')->store('pesajes', 'public');
+        }
+
         // Strategy.
         $strategy = $this->resolverStrategy($datos['tipo']);
         $context  = new CalculadorPesoContext($strategy);
@@ -70,19 +78,32 @@ class PesajeController extends Controller
                 'altura'             => (float) $datos['altura'],
                 'perimetro_toracico' => (float) $datos['perimetro_toracico'],
             ]
-            : ['imagen' => null]; // En 2E pasamos path real
+            : ['imagen' => $pathImagen];
 
-        $peso = $context->calcular($datosCalculo);
-
-        // Guardar imagen si vino.
-        $pathImagen = null;
-        if ($request->hasFile('imagen')) {
-            $pathImagen = $request->file('imagen')->store('pesajes', 'public');
+        // Si ML detecta que NO es una vaca: borrar imagen y devolver 422.
+        try {
+            $pesoOriginal = $context->calcular($datosCalculo);
+        } catch (NoBovinoDetectadoException $e) {
+            if ($pathImagen) {
+                Storage::disk('public')->delete($pathImagen);
+            }
+            return response()->json([
+                'mensaje' => $e->mensajeUsuario,
+                'detalles' => $e->detalles,
+            ], 422);
         }
+
+        // RF13 — Factor de corrección por raza.
+        $animal        = Animal::with('raza')->whereKey($datos['arete'])->first();
+        $factorRaza    = (float) ($animal->raza->factor_correccion ?? 1.0);
+        $pesoCorregido = round($pesoOriginal * $factorRaza, 2);
 
         $pesaje = Pesaje::create([
             'fecha'          => Carbon::now(),
-            'peso'           => $peso,
+            'peso'           => $pesoCorregido,
+            'peso_original'  => round($pesoOriginal, 2),
+            'factor_raza'    => $factorRaza,
+            'peso_corregido' => $pesoCorregido,
             'imagen'         => $pathImagen,
             'sincronizado'   => 1,
             'arete'          => $datos['arete'],
@@ -113,7 +134,7 @@ class PesajeController extends Controller
         }
 
         if ($pesaje->imagen) {
-            \Storage::disk('public')->delete($pesaje->imagen);
+            Storage::disk('public')->delete($pesaje->imagen);
         }
         $pesaje->delete();
 

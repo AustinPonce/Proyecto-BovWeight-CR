@@ -56,6 +56,16 @@ class Animal extends Model
         return $this->hasMany(Pesaje::class, 'arete', 'arete');
     }
 
+    public function comentariosVeterinario(): HasMany
+    {
+        return $this->hasMany(ComentarioVeterinario::class, 'arete', 'arete');
+    }
+
+    public function transacciones(): HasMany
+    {
+        return $this->hasMany(Transaccion::class, 'arete', 'arete');
+    }
+
     // ------------------------------------------------------------------
     // Local Scope: filtrado por rol — delega en el scope de Finca
     // ------------------------------------------------------------------

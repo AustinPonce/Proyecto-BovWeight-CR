@@ -1,0 +1,125 @@
+# Pipeline CI/CD básico — BovWeight CR
+# ─────────────────────────────────────────────────────────────────────────────
+# Se dispara en cada push a main/develop y en cada Pull Request.
+#
+# Tres jobs corren en paralelo:
+#   1) lint          — Laravel Pint (estilo de código PHP)
+#   2) test-backend  — PHPUnit sobre Laravel (BD SQLite en memoria)
+#   3) lint-ml       — flake8 + smoke test del microservicio Python
+#
+# Si cualquiera falla, el PR queda bloqueado (cuando se configure protección
+# de rama en GitHub).
+
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+
+  # ───────────────────────────────────────────────────────────────────────
+  # 1) Estilo de código PHP (Laravel Pint)
+  # ───────────────────────────────────────────────────────────────────────
+  lint:
+    name: PHP code style (Pint)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          tools: composer
+
+      - name: Install dependencies
+        run: composer install --prefer-dist --no-interaction --no-progress
+
+      - name: Run Pint (--test = solo chequea, no modifica)
+        run: ./vendor/bin/pint --test
+
+  # ───────────────────────────────────────────────────────────────────────
+  # 2) Tests del backend Laravel
+  # ───────────────────────────────────────────────────────────────────────
+  test-backend:
+    name: Backend tests (PHPUnit)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: mbstring, pdo, sqlite, pdo_sqlite, fileinfo, gd
+          coverage: none
+
+      - name: Cache Composer packages
+        uses: actions/cache@v4
+        with:
+          path: vendor
+          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+          restore-keys: ${{ runner.os }}-composer-
+
+      - name: Install dependencies
+        run: composer install --prefer-dist --no-interaction --no-progress
+
+      - name: Prepare environment
+        run: |
+          cp .env.example .env
+          php artisan key:generate
+          # Forzamos SQLite en memoria para los tests (rápido, sin contenedor de MySQL).
+          sed -i 's/^DB_CONNECTION=.*/DB_CONNECTION=sqlite/' .env
+          sed -i 's|^DB_HOST=.*|DB_DATABASE=:memory:|' .env
+          touch database/database.sqlite
+
+      - name: Run migrations
+        run: php artisan migrate --force
+
+      - name: Run PHPUnit
+        run: php artisan test
+
+  # ───────────────────────────────────────────────────────────────────────
+  # 3) Microservicio Python: lint + smoke test
+  # ───────────────────────────────────────────────────────────────────────
+  lint-ml:
+    name: ML microservice (smoke)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+
+      - name: Install ml_service deps
+        working-directory: ml_service
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install flake8
+
+      - name: Lint with flake8
+        working-directory: ml_service
+        run: flake8 app.py --max-line-length=120
+
+      - name: Smoke test (import + /salud endpoint)
+        working-directory: ml_service
+        # Verifica que el módulo importa sin errores y que /salud responde.
+        # No descargamos el modelo YOLO en CI (sería lento + opcional).
+        run: |
+          python -c "
+          import os
+          os.environ['YOLO_MODEL'] = 'yolov8n.pt'
+          import app as ml_app
+          client = ml_app.app.test_client()
+          response = client.get('/salud')
+          assert response.status_code == 200, response.data
+          assert response.get_json()['estado'] == 'ok'
+          print('Smoke test OK')
+          "

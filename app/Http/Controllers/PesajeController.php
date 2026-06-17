@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Contracts\ICalculadorPeso;
+use App\Exceptions\NoBovinoDetectadoException;
 use App\Http\Requests\PesajeRequest;
 use App\Models\Animal;
 use App\Models\Pesaje;
@@ -100,11 +101,19 @@ class PesajeController extends Controller
         // 1) Verificar que el animal sea uno que el usuario tiene permitido.
         $this->autorizarAnimal($request, $datos['arete']);
 
-        // 2) Elegir la estrategia (PATRÓN STRATEGY).
+        // 2) Si viene imagen, guardarla AHORA en storage para tener el path
+        //    disponible para el microservicio ML.
+        $pathImagen = null;
+        if ($request->hasFile('imagen')) {
+            $pathImagen = $request->file('imagen')->store('pesajes', 'public');
+        }
+
+        // 3) Elegir la estrategia (PATRÓN STRATEGY).
         $strategy = $this->resolverStrategy($datos['tipo']);
         $context  = new CalculadorPesoContext($strategy);
 
-        // 3) Armar el array de datos para la estrategia.
+        // 4) Armar el array de datos para la estrategia.
+        //    Manual → medidas corporales. Foto → path en disk 'public'.
         $datosCalculo = $datos['tipo'] === 'manual'
             ? [
                 'largo_cuerpo'       => (float) $datos['largo_cuerpo'],
@@ -112,36 +121,55 @@ class PesajeController extends Controller
                 'perimetro_toracico' => (float) $datos['perimetro_toracico'],
             ]
             : [
-                // En 2E acá pasamos el path de la imagen al microservicio ML.
-                // Por ahora la FotoIAWeightStrategy devuelve un mock random.
-                'imagen' => null,
+                'imagen' => $pathImagen, // se manda al microservicio Python
             ];
 
-        // 4) Calcular el peso.
-        $peso = $context->calcular($datosCalculo);
-
-        // 5) Si vino imagen, guardarla en storage/app/public/pesajes.
-        $pathImagen = null;
-        if ($request->hasFile('imagen')) {
-            $pathImagen = $request->file('imagen')->store('pesajes', 'public');
+        // 5) Calcular el peso. Si el ML está caído, la strategy hace fallback al mock.
+        //    Si el ML respondió pero NO detectó una vaca, levanta NoBovinoDetectadoException;
+        //    en ese caso borramos la imagen subida (no la queremos guardar) y devolvemos
+        //    el error al usuario (requerimiento #2: solo bovinos).
+        try {
+            $pesoOriginal = $context->calcular($datosCalculo);
+        } catch (NoBovinoDetectadoException $e) {
+            if ($pathImagen) {
+                Storage::disk('public')->delete($pathImagen);
+            }
+            return redirect()
+                ->route('pesajes.create', ['animal' => $datos['arete']])
+                ->withInput()
+                ->withErrors(['imagen' => $e->mensajeUsuario]);
         }
 
-        // 6) Crear el Pesaje. Los Observers se disparan automáticamente acá:
-        //    - AuditoriaPesajeObserver  → log de auditoría
+        // 6) RF13 — Factor de corrección por raza.
+        //    Cargamos el animal con su raza para leer el factor_correccion.
+        $animal        = Animal::with('raza')->whereKey($datos['arete'])->first();
+        $factorRaza    = (float) ($animal->raza->factor_correccion ?? 1.0);
+        $pesoCorregido = round($pesoOriginal * $factorRaza, 2);
+        $pesoFinal     = $pesoCorregido; // el campo `peso` siempre guarda el valor corregido
+
+        // 7) Crear el Pesaje. Los Observers se disparan automáticamente acá:
+        //    - AuditoriaPesajeObserver  → log de auditoría + BD
         //    - CrearNotificacionObserver → notificación si hay recordatorio
         //    - VerificarPesoObserver    → alerta sanitaria si peso < 100
         Pesaje::create([
             'fecha'          => Carbon::now(),
-            'peso'           => $peso,
+            'peso'           => $pesoFinal,
+            'peso_original'  => round($pesoOriginal, 2),
+            'factor_raza'    => $factorRaza,
+            'peso_corregido' => $pesoCorregido,
             'imagen'         => $pathImagen,
             'sincronizado'   => 1,
             'arete'          => $datos['arete'],
             'id_tipo_pesaje' => $this->resolverTipoPesajeId($datos['tipo']),
         ]);
 
+        $msgFactor = $factorRaza != 1.0
+            ? " (original: {$pesoOriginal} kg × factor {$factorRaza} raza)"
+            : '';
+
         return redirect()
             ->route('animales.show', $datos['arete'])
-            ->with('exito', "Pesaje registrado: {$peso} kg.");
+            ->with('exito', "Pesaje registrado: {$pesoFinal} kg.{$msgFactor}");
     }
 
     // ==================================================================

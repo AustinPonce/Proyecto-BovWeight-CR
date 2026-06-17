@@ -28,13 +28,49 @@
         <p class="text-sm text-gray-600 mt-1">{{ $animales->count() }} animal(es)</p>
     </div>
 
-    @if ($puedeCrear)
-        <a href="{{ route('animales.create', $fincaSeleccionada ? ['finca' => $fincaSeleccionada->id_finca] : []) }}"
-           class="bg-emerald-700 hover:bg-emerald-800 text-white px-4 py-2 rounded font-medium">
-            + Nuevo animal
+    <div class="flex items-center gap-2">
+        <a href="{{ route('export.animales.pdf', request()->query()) }}"
+           class="bg-red-700 hover:bg-red-800 text-white px-3 py-2 rounded text-sm font-medium">
+            PDF
         </a>
-    @endif
+        <a href="{{ route('export.animales.csv', request()->query()) }}"
+           class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-2 rounded text-sm font-medium">
+            CSV/Excel
+        </a>
+        @if ($puedeCrear)
+            <a href="{{ route('animales.create', $fincaSeleccionada ? ['finca' => $fincaSeleccionada->id_finca] : []) }}"
+               class="bg-emerald-700 hover:bg-emerald-800 text-white px-4 py-2 rounded font-medium">
+                + Nuevo animal
+            </a>
+        @endif
+    </div>
 </div>
+
+{{-- RF08 + RF12: Búsqueda y filtro --}}
+<form method="GET" action="{{ route('animales.index') }}" class="bg-white shadow rounded p-4 mb-6 flex flex-wrap gap-3 items-end">
+    @if(request('finca'))
+        <input type="hidden" name="finca" value="{{ request('finca') }}">
+    @endif
+    <div class="flex-1 min-w-40">
+        <label class="block text-xs font-medium text-gray-600 mb-1">Buscar por arete o nombre</label>
+        <input type="text" name="buscar" value="{{ request('buscar') }}" placeholder="Ej: 1001 o Torito"
+               class="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
+    </div>
+    <div>
+        <label class="block text-xs font-medium text-gray-600 mb-1">Estado</label>
+        <select name="estado" class="border border-gray-300 rounded px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500">
+            <option value="">Todos</option>
+            @foreach ($estados as $est)
+                <option value="{{ $est->estado }}" @selected(request('estado') === $est->estado)>
+                    {{ $est->estado }}
+                </option>
+            @endforeach
+        </select>
+    </div>
+    <button type="submit" class="bg-emerald-700 hover:bg-emerald-800 text-white px-4 py-2 rounded text-sm">Filtrar</button>
+    <a href="{{ route('animales.index', request('finca') ? ['finca' => request('finca')] : []) }}"
+       class="text-sm text-gray-500 hover:underline">Limpiar</a>
+</form>
 
 @if ($fincaSeleccionada)
     <div class="mb-4">

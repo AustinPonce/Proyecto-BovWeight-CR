@@ -1,0 +1,27 @@
+# Entornos virtuales
+venv/
+.venv/
+env/
+
+# Cache de Python
+__pycache__/
+*.pyc
+*.pyo
+
+# Modelos descargados (se bajan en runtime, no van al repo)
+*.pt
+yolov8n.pt
+yolov8s.pt
+yolov8m.pt
+
+# Archivos temporales del Flask
+*.log
+.flask_session/
+
+# Sistema operativo
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/

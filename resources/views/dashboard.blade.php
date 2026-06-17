@@ -1,14 +1,18 @@
 {{--
     Dashboard principal. Muestra bloques distintos según el rol del usuario.
 
-    Esto demuestra el control de acceso por VISTA (además del de RUTA).
-    El middleware 'rol' bloquea el acceso a rutas; los @if (auth()->user()->esXxx())
-    deciden qué se muestra dentro de una página común.
+    Reglas (requerimiento #10 + #11):
+      - Admin       → bloques ADMINISTRATIVOS solamente:
+                      gestionar usuarios, lista de usuarios/fincas/animales,
+                      catálogos, reportes globales.
+                      NO ve "Mis fincas", "Mis animales", "Registrar pesaje",
+                      "Historial de pesajes", "Fincas asignadas" ni
+                      "Calculadora de dosis" porque el admin no es operativo.
+      - Ganadero    → sus fincas, animales, pesajes.
+      - Veterinario → fincas asignadas, dosificación.
 
-    Roles:
-      - Admin       → ve todo
-      - Ganadero    → sus fincas, animales, pesajes
-      - Veterinario → fincas asignadas, dosificación
+    El acceso a las RUTAS sigue protegido por middleware, esto solo decide
+    qué BOTONES se muestran en el panel.
 --}}
 @extends('layouts.app')
 
@@ -30,56 +34,101 @@
 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
 
     {{-- ============================================================ --}}
-    {{-- BLOQUE ADMIN: visible solo para administradores             --}}
+    {{-- BLOQUES DE ADMINISTRADOR (solo admin)                        --}}
     {{-- ============================================================ --}}
     @if ($usuario->esAdmin())
-        <a href="#" class="block bg-white border-l-4 border-rose-500 shadow rounded p-5 hover:shadow-md transition">
+        <a href="{{ route('admin.usuarios.index') }}"
+           class="block bg-white border-l-4 border-rose-500 shadow rounded p-5 hover:shadow-md transition">
             <h3 class="font-semibold text-rose-700">Gestionar usuarios</h3>
-            <p class="text-sm text-gray-600 mt-1">Crear, editar y desactivar cuentas.</p>
+            <p class="text-sm text-gray-600 mt-1">Crear, editar y desactivar cuentas del sistema.</p>
         </a>
-        <a href="#" class="block bg-white border-l-4 border-rose-500 shadow rounded p-5 hover:shadow-md transition">
+
+        <a href="{{ route('fincas.index') }}"
+           class="block bg-white border-l-4 border-rose-500 shadow rounded p-5 hover:shadow-md transition">
+            <h3 class="font-semibold text-rose-700">Lista de fincas</h3>
+            <p class="text-sm text-gray-600 mt-1">Ver, editar y eliminar todas las fincas del sistema.</p>
+        </a>
+
+        <a href="{{ route('animales.index') }}"
+           class="block bg-white border-l-4 border-rose-500 shadow rounded p-5 hover:shadow-md transition">
+            <h3 class="font-semibold text-rose-700">Lista de bovinos</h3>
+            <p class="text-sm text-gray-600 mt-1">Ver, editar y eliminar todos los animales del sistema.</p>
+        </a>
+
+        <a href="{{ route('admin.catalogos.index') }}"
+           class="block bg-white border-l-4 border-rose-500 shadow rounded p-5 hover:shadow-md transition">
             <h3 class="font-semibold text-rose-700">Catálogos del sistema</h3>
-            <p class="text-sm text-gray-600 mt-1">Razas, estados, tipos de pesaje.</p>
+            <p class="text-sm text-gray-600 mt-1">Razas, estados, tipos de pesaje y medicamentos.</p>
         </a>
-        <a href="#" class="block bg-white border-l-4 border-rose-500 shadow rounded p-5 hover:shadow-md transition">
+
+        <a href="{{ route('admin.reportes.index') }}"
+           class="block bg-white border-l-4 border-rose-500 shadow rounded p-5 hover:shadow-md transition">
             <h3 class="font-semibold text-rose-700">Reportes globales</h3>
-            <p class="text-sm text-gray-600 mt-1">Estadísticas de todas las fincas.</p>
+            <p class="text-sm text-gray-600 mt-1">Estadísticas de todas las fincas y pesajes.</p>
         </a>
     @endif
 
     {{-- ============================================================ --}}
-    {{-- BLOQUE GANADERO: dueño de fincas                            --}}
+    {{-- BLOQUES DE GANADERO (NO se muestran al Admin)                --}}
     {{-- ============================================================ --}}
-    @if ($usuario->esGanadero() || $usuario->esAdmin())
-        <a href="{{ route('fincas.index') }}" class="block bg-white border-l-4 border-emerald-500 shadow rounded p-5 hover:shadow-md transition">
+    @if ($usuario->esGanadero())
+        <a href="{{ route('fincas.index') }}"
+           class="block bg-white border-l-4 border-emerald-500 shadow rounded p-5 hover:shadow-md transition">
             <h3 class="font-semibold text-emerald-700">Mis fincas</h3>
             <p class="text-sm text-gray-600 mt-1">Gestionar fincas registradas a tu nombre.</p>
         </a>
-        <a href="{{ route('animales.index') }}" class="block bg-white border-l-4 border-emerald-500 shadow rounded p-5 hover:shadow-md transition">
+
+        <a href="{{ route('animales.index') }}"
+           class="block bg-white border-l-4 border-emerald-500 shadow rounded p-5 hover:shadow-md transition">
             <h3 class="font-semibold text-emerald-700">Mis animales</h3>
             <p class="text-sm text-gray-600 mt-1">Registrar y consultar ganado por finca.</p>
         </a>
-        <a href="{{ route('pesajes.create') }}" class="block bg-white border-l-4 border-emerald-500 shadow rounded p-5 hover:shadow-md transition">
+
+        <a href="{{ route('pesajes.create') }}"
+           class="block bg-white border-l-4 border-emerald-500 shadow rounded p-5 hover:shadow-md transition">
             <h3 class="font-semibold text-emerald-700">Registrar pesaje</h3>
             <p class="text-sm text-gray-600 mt-1">Por medidas corporales o por foto del animal.</p>
         </a>
-        <a href="{{ route('pesajes.index') }}" class="block bg-white border-l-4 border-emerald-500 shadow rounded p-5 hover:shadow-md transition">
+
+        <a href="{{ route('pesajes.index') }}"
+           class="block bg-white border-l-4 border-emerald-500 shadow rounded p-5 hover:shadow-md transition">
             <h3 class="font-semibold text-emerald-700">Historial de pesajes</h3>
-            <p class="text-sm text-gray-600 mt-1">Consultar todos los pesajes registrados.</p>
+            <p class="text-sm text-gray-600 mt-1">Consultar y exportar pesajes registrados.</p>
+        </a>
+
+        <a href="{{ route('transacciones.index') }}"
+           class="block bg-white border-l-4 border-amber-500 shadow rounded p-5 hover:shadow-md transition">
+            <h3 class="font-semibold text-amber-700">Transacciones</h3>
+            <p class="text-sm text-gray-600 mt-1">Registrar compras y ventas de ganado en kg en pie.</p>
+        </a>
+
+        <a href="{{ route('dosis.calcular') }}"
+           class="block bg-white border-l-4 border-emerald-500 shadow rounded p-5 hover:shadow-md transition">
+            <h3 class="font-semibold text-emerald-700">Calculadora de dosis</h3>
+            <p class="text-sm text-gray-600 mt-1">Calcular dosis de medicamentos según el peso del animal.</p>
         </a>
     @endif
 
     {{-- ============================================================ --}}
-    {{-- BLOQUE VETERINARIO: fincas asignadas, dosificación          --}}
+    {{-- BLOQUES DE VETERINARIO (NO se muestran al Admin)             --}}
     {{-- ============================================================ --}}
-    @if ($usuario->esVeterinario() || $usuario->esAdmin())
-        <a href="{{ route('fincas.index') }}" class="block bg-white border-l-4 border-sky-500 shadow rounded p-5 hover:shadow-md transition">
+    @if ($usuario->esVeterinario())
+        <a href="{{ route('fincas.index') }}"
+           class="block bg-white border-l-4 border-sky-500 shadow rounded p-5 hover:shadow-md transition">
             <h3 class="font-semibold text-sky-700">Fincas asignadas</h3>
             <p class="text-sm text-gray-600 mt-1">Fincas en las que sos veterinario.</p>
         </a>
-        <a href="#" class="block bg-white border-l-4 border-sky-500 shadow rounded p-5 hover:shadow-md transition">
+
+        <a href="{{ route('animales.index') }}"
+           class="block bg-white border-l-4 border-sky-500 shadow rounded p-5 hover:shadow-md transition">
+            <h3 class="font-semibold text-sky-700">Bovinos asignados</h3>
+            <p class="text-sm text-gray-600 mt-1">Consultar historial y exportar.</p>
+        </a>
+
+        <a href="{{ route('dosis.calcular') }}"
+           class="block bg-white border-l-4 border-sky-500 shadow rounded p-5 hover:shadow-md transition">
             <h3 class="font-semibold text-sky-700">Calculadora de dosis</h3>
-            <p class="text-sm text-gray-600 mt-1">Basada en peso estimado del animal. <span class="text-xs">(próximo bloque)</span></p>
+            <p class="text-sm text-gray-600 mt-1">Calcular dosis de medicamentos según peso del animal.</p>
         </a>
     @endif
 
@@ -88,6 +137,7 @@
 {{-- Aviso legal del PDF: el sistema NO sustituye báscula oficial. --}}
 <div class="mt-8 bg-yellow-50 border border-yellow-200 text-yellow-900 rounded p-4 text-sm">
     <strong>Aviso:</strong> Las estimaciones de peso son orientativas. No sustituyen
-    la báscula oficial para transacciones comerciales legales.
+    la báscula oficial para transacciones comerciales legales (compra/venta de
+    ganado en kilogramos en pie).
 </div>
 @endsection

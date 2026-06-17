@@ -67,6 +67,16 @@
     @if ($animal->pesajes->isEmpty())
         <p class="text-sm text-gray-500">Sin pesajes registrados todavía.</p>
     @else
+        {{-- RF10: Gráfica de progreso de peso --}}
+        @php
+            $pesajesOrdenados = $animal->pesajes->sortBy('fecha');
+            $labels = $pesajesOrdenados->map(fn($p) => \Illuminate\Support\Carbon::parse($p->fecha)->format('d/m/Y'))->values();
+            $pesos  = $pesajesOrdenados->map(fn($p) => round((float)$p->peso, 2))->values();
+        @endphp
+        <div class="mb-6">
+            <canvas id="graficaPeso" height="100"></canvas>
+        </div>
+
         <table class="w-full text-sm">
             <thead class="text-gray-600">
                 <tr class="text-left border-b">
@@ -80,11 +90,91 @@
                     <tr>
                         <td class="py-2">{{ \Illuminate\Support\Carbon::parse($p->fecha)->format('d/m/Y H:i') }}</td>
                         <td class="py-2 font-medium">{{ number_format($p->peso, 2) }}</td>
-                        <td class="py-2 text-gray-600">#{{ $p->id_tipo_pesaje }}</td>
+                        <td class="py-2 text-gray-600">{{ $p->id_tipo_pesaje == 1 ? 'Foto IA' : 'Manual' }}</td>
                     </tr>
                 @endforeach
             </tbody>
         </table>
+
+        <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+        <script>
+            new Chart(document.getElementById('graficaPeso'), {
+                type: 'line',
+                data: {
+                    labels: @json($labels),
+                    datasets: [{
+                        label: 'Peso (kg)',
+                        data: @json($pesos),
+                        borderColor: '#15803d',
+                        backgroundColor: 'rgba(21,128,61,0.1)',
+                        borderWidth: 2,
+                        pointRadius: 4,
+                        pointBackgroundColor: '#15803d',
+                        tension: 0.3,
+                        fill: true,
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: ctx => ctx.parsed.y + ' kg'
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: false,
+                            ticks: { callback: v => v + ' kg' }
+                        }
+                    }
+                }
+            });
+        </script>
+    @endif
+</div>
+
+{{-- Comentarios del veterinario --}}
+@php
+    $comentarios = $animal->comentariosVeterinario()
+        ->with('veterinario')
+        ->orderByDesc('fecha')
+        ->limit(3)
+        ->get();
+@endphp
+
+<div class="bg-white shadow rounded p-5 mt-6">
+    <div class="flex items-center justify-between mb-3">
+        <h2 class="font-semibold text-gray-700">Comentarios del veterinario</h2>
+        <a href="{{ route('animales.comentarios', $animal) }}"
+           class="text-sky-700 hover:underline text-sm">Ver todos →</a>
+    </div>
+
+    @if ($comentarios->isEmpty())
+        <p class="text-sm text-gray-500">Sin comentarios veterinarios todavía.</p>
+    @else
+        <div class="space-y-3">
+            @foreach ($comentarios as $com)
+                <div class="border-l-4 border-sky-300 pl-3">
+                    <p class="text-xs text-gray-500 mb-1">
+                        {{ $com->veterinario->nombre ?? 'Veterinario' }} —
+                        {{ \Illuminate\Support\Carbon::parse($com->fecha)->format('d/m/Y') }}
+                    </p>
+                    <p class="text-sm text-gray-800">{{ Str::limit($com->comentario, 200) }}</p>
+                </div>
+            @endforeach
+        </div>
+    @endif
+
+    @if ($usuario->esVeterinario())
+        <div class="mt-3">
+            <a href="{{ route('animales.comentarios', $animal) }}"
+               class="text-sm bg-sky-50 hover:bg-sky-100 text-sky-700 border border-sky-200 px-3 py-1.5 rounded">
+                + Agregar comentario
+            </a>
+        </div>
     @endif
 </div>
 
