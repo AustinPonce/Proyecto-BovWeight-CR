@@ -10,9 +10,16 @@ class CatalogosSeeder extends Seeder
     public function run(): void
     {
         // 1. Datos iniciales para Tipo de Usuario
+        //    Los 3 roles del sistema. El id_tipo_usuario se autoincrementa:
+        //      1 = Administrador (acceso total)
+        //      2 = Ganadero      (gestiona sus fincas, animales y pesajes,
+        //                         y también puede consultar pesajes — antes
+        //                         se pensó "Comprador" como rol aparte pero
+        //                         las acciones son equivalentes a Ganadero)
+        //      3 = Veterinario   (asignado a fincas, dosifica medicamentos)
         DB::table('Tipo_usuario')->insert([
             ['nombre_tipo' => 'Administrador'],
-            ['nombre_tipo' => 'Ganadero / Dueño'],
+            ['nombre_tipo' => 'Ganadero'],
             ['nombre_tipo' => 'Veterinario'],
         ]);
 
