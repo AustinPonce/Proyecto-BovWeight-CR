@@ -30,13 +30,26 @@ class CatalogosSeeder extends Seeder
             ['estado' => 'Fallecido'],
         ]);
 
-        // 3. Datos iniciales para Razas de Ganado
+        // 3. Datos iniciales para Razas de Ganado (con factor_correccion — RF13)
+        //
+        //    El factor_correccion multiplica el peso estimado bruto por la
+        //    características fisiológicas de la raza:
+        //
+        //      > 1.0 → raza más pesada de lo que el modelo "ve" en la imagen
+        //      < 1.0 → raza más liviana de lo que el modelo estima
+        //      = 1.0 → sin corrección (referencia base = Angus)
+        //
+        //    IMPORTANTE: estos valores son aproximaciones académicas.
+        //    En producción deben calibrarse con datos de campo de Costa Rica.
         DB::table('Raza')->insert([
-            ['raza' => 'Brahman'],
-            ['raza' => 'Pardo Suizo'],
-            ['raza' => 'Holstein'],
-            ['raza' => 'Nelore'],
-            ['raza' => 'Gyr'],
+            ['raza' => 'Brahman',     'factor_correccion' => 1.1200], // zebuína, mayor masa muscular
+            ['raza' => 'Pardo Suizo', 'factor_correccion' => 1.0300], // doble propósito, talla media-alta
+            ['raza' => 'Holstein',    'factor_correccion' => 1.0800], // lechera de gran alzada
+            ['raza' => 'Nelore',      'factor_correccion' => 1.0500], // zebuína, muy común en CR
+            ['raza' => 'Gyr',         'factor_correccion' => 1.0400], // zebuína, talla media
+            ['raza' => 'Jersey',      'factor_correccion' => 0.9200], // lechera de pequeña alzada
+            ['raza' => 'Angus',       'factor_correccion' => 1.0000], // referencia base (= sin corrección)
+            ['raza' => 'Simmental',   'factor_correccion' => 1.0500], // doble propósito, de gran alzada
         ]);
 
         // 4. Datos iniciales para Sexo

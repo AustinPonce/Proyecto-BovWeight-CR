@@ -4,8 +4,9 @@
 
 @section('contenido')
 @php
-    $usuario = auth()->user();
+    $usuario     = auth()->user();
     $puedeEliminar = ! $usuario->esVeterinario();
+    $tieneCorreccion = $pesaje->peso_corregido !== null && $pesaje->factor_raza !== null;
 @endphp
 
 <div class="max-w-3xl mx-auto">
@@ -23,10 +24,13 @@
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+        {{-- Peso final --}}
         <div class="bg-white shadow rounded p-5">
-            <h2 class="text-xs uppercase text-gray-500 mb-2">Peso registrado</h2>
+            <h2 class="text-xs uppercase text-gray-500 mb-2">
+                Peso {{ $tieneCorreccion ? 'corregido por raza' : 'registrado' }}
+            </h2>
             <p class="text-4xl font-bold @class([
-                'text-red-700' => (float) $pesaje->peso < 100,
+                'text-red-700'     => (float) $pesaje->peso < 100,
                 'text-emerald-700' => (float) $pesaje->peso >= 100,
             ])">
                 {{ number_format($pesaje->peso, 2) }}
@@ -34,6 +38,27 @@
             </p>
             @if ((float) $pesaje->peso < 100)
                 <p class="text-xs text-red-700 mt-2">⚠️ Peso por debajo del umbral crítico (100 kg).</p>
+            @endif
+
+            {{-- RF13 — Desglose de corrección por raza --}}
+            @if ($tieneCorreccion)
+                <div class="mt-3 border-t pt-3">
+                    <p class="text-xs font-semibold text-gray-600 mb-2">Desglose corrección (RF13):</p>
+                    <dl class="text-xs space-y-1">
+                        <div class="flex justify-between text-gray-600">
+                            <dt>Peso estimado (bruto)</dt>
+                            <dd class="font-mono">{{ number_format($pesaje->peso_original, 2) }} kg</dd>
+                        </div>
+                        <div class="flex justify-between text-gray-600">
+                            <dt>Factor raza ({{ $pesaje->animal->raza->raza ?? '—' }})</dt>
+                            <dd class="font-mono font-semibold">× {{ number_format($pesaje->factor_raza, 4) }}</dd>
+                        </div>
+                        <div class="flex justify-between text-emerald-700 font-semibold border-t pt-1">
+                            <dt>Peso corregido</dt>
+                            <dd class="font-mono">{{ number_format($pesaje->peso_corregido, 2) }} kg</dd>
+                        </div>
+                    </dl>
+                </div>
             @endif
         </div>
 
@@ -65,6 +90,18 @@
         </div>
     @endif
 
+    {{-- Disclaimer RF13 --}}
+    @if ($tieneCorreccion && $pesaje->factor_raza != 1.0)
+        <div class="bg-amber-50 border border-amber-200 rounded p-4 mb-4 text-xs text-amber-800">
+            <p class="font-semibold mb-1">⚠️ Estimación con corrección por raza</p>
+            <p>El peso mostrado ({{ number_format($pesaje->peso, 2) }} kg) incluye un factor de corrección
+               de <strong>{{ number_format($pesaje->factor_raza, 4) }}</strong>
+               aplicado por la raza <strong>{{ $pesaje->animal->raza->raza ?? '—' }}</strong>.
+               Este factor es una aproximación académica. Para mayor precisión,
+               complementar con medición directa en báscula.</p>
+        </div>
+    @endif
+
     <div class="flex items-center justify-between">
         <a href="{{ route('pesajes.index') }}" class="text-sm text-gray-600 hover:underline">← Volver al historial</a>
         @if ($puedeEliminar)
@@ -78,3 +115,4 @@
     </div>
 </div>
 @endsection
+

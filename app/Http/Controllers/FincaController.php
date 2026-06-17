@@ -3,8 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\FincaRequest;
+use App\Models\Auditoria;
 use App\Models\Finca;
 use App\Models\Usuario;
+use App\Services\AuditoriaService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -89,6 +91,14 @@ class FincaController extends Controller
 
         Finca::create($datos);
 
+        // RF21 — Auditoría.
+        AuditoriaService::registrar(
+            accion:       Auditoria::ACCION_CREAR,
+            modulo:       Auditoria::MODULO_FINCAS,
+            descripcion:  "Finca '{$datos['nombre']}' creada.",
+            datosDespues: $datos,
+        );
+
         return redirect()
             ->route('fincas.index')
             ->with('exito', 'Finca creada correctamente.');
@@ -138,6 +148,15 @@ class FincaController extends Controller
 
         $finca->update($datos);
 
+        // RF21 — Auditoría.
+        AuditoriaService::registrar(
+            accion:      Auditoria::ACCION_ACTUALIZAR,
+            modulo:      Auditoria::MODULO_FINCAS,
+            descripcion: "Finca '{$finca->nombre}' actualizada.",
+            datosAntes:  $finca->getOriginal(),
+            datosDespues: $finca->toArray(),
+        );
+
         return redirect()
             ->route('fincas.index')
             ->with('exito', 'Finca actualizada correctamente.');
@@ -150,7 +169,16 @@ class FincaController extends Controller
     {
         $this->autorizarEdicion($finca);
 
+        $nombre = $finca->nombre;
         $finca->delete();
+
+        // RF21 — Auditoría.
+        AuditoriaService::registrar(
+            accion:      Auditoria::ACCION_ELIMINAR,
+            modulo:      Auditoria::MODULO_FINCAS,
+            descripcion: "Finca '{$nombre}' eliminada.",
+            datosAntes:  $finca->toArray(),
+        );
 
         return redirect()
             ->route('fincas.index')

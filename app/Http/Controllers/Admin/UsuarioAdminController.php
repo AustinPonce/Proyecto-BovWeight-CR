@@ -4,8 +4,10 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Mail\WelcomeMail;
+use App\Models\Auditoria;
 use App\Models\TipoUsuario;
 use App\Models\Usuario;
+use App\Services\AuditoriaService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -59,6 +61,14 @@ class UsuarioAdminController extends Controller
 
         Mail::to($usuario->correo)->send(new WelcomeMail($usuario));
 
+        // RF21 — Auditoría.
+        AuditoriaService::registrar(
+            accion:       Auditoria::ACCION_CREAR,
+            modulo:       Auditoria::MODULO_USUARIOS,
+            descripcion:  "Admin creó usuario '{$usuario->nombre}' (cédula: {$usuario->cedula}, rol: {$usuario->id_tipo_usuario}).",
+            datosDespues: ['cedula' => $usuario->cedula, 'nombre' => $usuario->nombre, 'id_tipo_usuario' => $usuario->id_tipo_usuario],
+        );
+
         return redirect()->route('admin.usuarios.index')
             ->with('exito', 'Usuario creado correctamente.');
     }
@@ -82,7 +92,17 @@ class UsuarioAdminController extends Controller
             unset($datos['contrasena']);
         }
 
+        $original = $usuario->toArray();
         $usuario->update($datos);
+
+        // RF21 — Auditoría.
+        AuditoriaService::registrar(
+            accion:       Auditoria::ACCION_ACTUALIZAR,
+            modulo:       Auditoria::MODULO_USUARIOS,
+            descripcion:  "Admin actualizó usuario '{$usuario->nombre}' (cédula: {$usuario->cedula}).",
+            datosAntes:   array_diff_key($original, ['contrasena' => '']),
+            datosDespues: array_diff_key($usuario->toArray(), ['contrasena' => '']),
+        );
 
         return redirect()->route('admin.usuarios.index')
             ->with('exito', 'Usuario actualizado correctamente.');
@@ -99,6 +119,14 @@ class UsuarioAdminController extends Controller
 
         $estado = $usuario->activo ? 'activado' : 'desactivado';
 
+        // RF21 — Auditoría.
+        AuditoriaService::registrar(
+            accion:      $usuario->activo ? Auditoria::ACCION_ACTIVAR : Auditoria::ACCION_DESACTIVAR,
+            modulo:      Auditoria::MODULO_USUARIOS,
+            descripcion: "Admin {$estado} al usuario '{$usuario->nombre}' (cédula: {$usuario->cedula}).",
+            datosDespues: ['cedula' => $usuario->cedula, 'activo' => $usuario->activo],
+        );
+
         return redirect()->route('admin.usuarios.index')
             ->with('exito', "Usuario {$usuario->nombre} {$estado} correctamente.");
     }
@@ -110,7 +138,16 @@ class UsuarioAdminController extends Controller
                 ->with('error', 'No podés eliminar tu propia cuenta.');
         }
 
+        $snapshot = $usuario->toArray();
         $usuario->delete();
+
+        // RF21 — Auditoría.
+        AuditoriaService::registrar(
+            accion:      Auditoria::ACCION_ELIMINAR,
+            modulo:      Auditoria::MODULO_USUARIOS,
+            descripcion: "Admin eliminó al usuario '{$snapshot['nombre']}' (cédula: {$snapshot['cedula']}).",
+            datosAntes:  array_diff_key($snapshot, ['contrasena' => '']),
+        );
 
         return redirect()->route('admin.usuarios.index')
             ->with('exito', 'Usuario eliminado.');

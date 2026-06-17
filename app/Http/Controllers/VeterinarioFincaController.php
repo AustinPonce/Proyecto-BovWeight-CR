@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Auditoria;
 use App\Models\Finca;
 use App\Models\Usuario;
+use App\Services\AuditoriaService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -44,6 +46,14 @@ class VeterinarioFincaController extends Controller
             $finca->veterinarios()->attach($vet->cedula);
         }
 
+        // RF21 — Auditoría.
+        AuditoriaService::registrar(
+            accion:      Auditoria::ACCION_ASIGNAR,
+            modulo:      Auditoria::MODULO_VETERINARIOS,
+            descripcion: "Veterinario '{$vet->nombre}' (cédula: {$vet->cedula}) asignado a finca '{$finca->nombre}'.",
+            datosDespues: ['finca_id' => $finca->id_finca, 'cedula_veterinario' => $vet->cedula],
+        );
+
         return redirect()
             ->route('fincas.show', $finca)
             ->with('exito', "Veterinario {$vet->nombre} asignado correctamente.");
@@ -55,6 +65,14 @@ class VeterinarioFincaController extends Controller
         $this->autorizarEdicion($finca);
 
         $finca->veterinarios()->detach($cedula);
+
+        // RF21 — Auditoría.
+        AuditoriaService::registrar(
+            accion:      Auditoria::ACCION_DESASIGNAR,
+            modulo:      Auditoria::MODULO_VETERINARIOS,
+            descripcion: "Veterinario cédula '{$cedula}' desasignado de finca '{$finca->nombre}'.",
+            datosAntes:  ['finca_id' => $finca->id_finca, 'cedula_veterinario' => $cedula],
+        );
 
         return redirect()
             ->route('fincas.show', $finca)

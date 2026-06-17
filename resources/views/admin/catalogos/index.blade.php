@@ -123,6 +123,7 @@
 {{-- ===== RAZAS ===== --}}
 @if ($tab === 'razas')
 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    {{-- Formulario agregar --}}
     <div class="bg-white shadow rounded p-5">
         <h2 class="font-semibold text-gray-700 mb-4">Agregar raza</h2>
         <form method="POST" action="{{ route('admin.catalogos.razas.store') }}" class="space-y-3">
@@ -132,24 +133,57 @@
                 <input type="text" name="raza" value="{{ old('raza') }}" required
                        class="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-rose-400">
             </div>
+            {{-- RF13: Factor de corrección --}}
+            <div>
+                <label class="block text-xs font-medium text-gray-600 mb-1">
+                    Factor de corrección (RF13)
+                    <span class="text-gray-400 font-normal ml-1">0.5 – 2.0 | default 1.0</span>
+                </label>
+                <input type="number" name="factor_correccion" value="{{ old('factor_correccion', '1.0000') }}"
+                       step="0.0001" min="0.5" max="2.0"
+                       class="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-rose-400">
+                <p class="text-xs text-gray-500 mt-0.5">
+                    Multiplica el peso estimado. Ej: 1.08 para Holstein, 0.92 para Jersey.
+                </p>
+            </div>
             <button type="submit" class="w-full bg-rose-600 hover:bg-rose-700 text-white text-sm font-semibold py-2 rounded">
                 Agregar
             </button>
         </form>
     </div>
+
+    {{-- Tabla de razas --}}
     <div class="lg:col-span-2 bg-white shadow rounded overflow-hidden">
         <table class="w-full text-sm">
             <thead class="bg-gray-50 border-b">
                 <tr class="text-left text-gray-600">
                     <th class="px-4 py-3">Raza</th>
+                    <th class="px-4 py-3 text-center">Factor corrección</th>
                     <th class="px-4 py-3 text-right">Acciones</th>
                 </tr>
             </thead>
             <tbody class="divide-y">
                 @foreach ($razas as $raza)
-                    <tr class="hover:bg-gray-50">
-                        <td class="px-4 py-3">{{ $raza->raza }}</td>
+                    <tr class="hover:bg-gray-50" id="raza-row-{{ $raza->id_raza }}">
+                        {{-- Modo vista --}}
+                        <td class="px-4 py-3 font-medium" id="raza-nombre-{{ $raza->id_raza }}">
+                            {{ $raza->raza }}
+                        </td>
+                        <td class="px-4 py-3 text-center" id="raza-factor-{{ $raza->id_raza }}">
+                            @php
+                                $factor = (float) $raza->factor_correccion;
+                                $color  = $factor > 1.0 ? 'text-emerald-700' : ($factor < 1.0 ? 'text-rose-700' : 'text-gray-600');
+                            @endphp
+                            <span class="font-mono font-semibold {{ $color }}">
+                                {{ number_format($factor, 4) }}
+                            </span>
+                        </td>
                         <td class="px-4 py-3 text-right">
+                            <button type="button"
+                                    onclick="mostrarEditarRaza({{ $raza->id_raza }}, '{{ addslashes($raza->raza) }}', '{{ $raza->factor_correccion }}')"
+                                    class="text-blue-700 hover:underline text-xs mr-2">
+                                Editar
+                            </button>
                             <form method="POST" action="{{ route('admin.catalogos.razas.destroy', $raza) }}" class="inline"
                                   onsubmit="return confirm('¿Eliminar la raza {{ $raza->raza }}?')">
                                 @csrf
@@ -158,12 +192,52 @@
                             </form>
                         </td>
                     </tr>
+                    {{-- Fila de edición (oculta) --}}
+                    <tr id="raza-edit-{{ $raza->id_raza }}" class="hidden bg-amber-50">
+                        <td colspan="3" class="px-4 py-3">
+                            <form method="POST"
+                                  action="{{ route('admin.catalogos.razas.update', $raza) }}"
+                                  class="flex flex-wrap gap-3 items-end">
+                                @csrf
+                                @method('PUT')
+                                <div class="flex-1 min-w-32">
+                                    <label class="block text-xs font-medium text-gray-600 mb-1">Nombre</label>
+                                    <input type="text" name="raza" id="edit-nombre-{{ $raza->id_raza }}"
+                                           value="{{ $raza->raza }}"
+                                           class="w-full border rounded px-2 py-1.5 text-sm focus:ring-2 focus:ring-rose-400">
+                                </div>
+                                <div class="w-36">
+                                    <label class="block text-xs font-medium text-gray-600 mb-1">Factor corrección</label>
+                                    <input type="number" name="factor_correccion" id="edit-factor-{{ $raza->id_raza }}"
+                                           value="{{ $raza->factor_correccion }}" step="0.0001" min="0.5" max="2.0"
+                                           class="w-full border rounded px-2 py-1.5 text-sm focus:ring-2 focus:ring-rose-400">
+                                </div>
+                                <div class="flex gap-2">
+                                    <button type="submit" class="bg-rose-600 hover:bg-rose-700 text-white text-xs font-semibold px-3 py-1.5 rounded">Guardar</button>
+                                    <button type="button" onclick="ocultarEditarRaza({{ $raza->id_raza }})"
+                                            class="text-gray-600 hover:underline text-xs">Cancelar</button>
+                                </div>
+                            </form>
+                        </td>
+                    </tr>
                 @endforeach
             </tbody>
         </table>
     </div>
 </div>
+
+<script>
+function mostrarEditarRaza(id, nombre, factor) {
+    document.getElementById('raza-edit-' + id).classList.remove('hidden');
+    document.getElementById('raza-row-' + id).classList.add('hidden');
+}
+function ocultarEditarRaza(id) {
+    document.getElementById('raza-edit-' + id).classList.add('hidden');
+    document.getElementById('raza-row-' + id).classList.remove('hidden');
+}
+</script>
 @endif
+
 
 {{-- ===== ESTADOS ===== --}}
 @if ($tab === 'estados')

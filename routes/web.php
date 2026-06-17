@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\AuditoriaController;
 use App\Http\Controllers\Admin\CatalogoController;
 use App\Http\Controllers\Admin\ReporteGlobalController;
 use App\Http\Controllers\Admin\UsuarioAdminController;
@@ -153,5 +154,10 @@ Route::middleware('auth')->group(function () {
         Route::get('reportes',     [ReporteGlobalController::class, 'index'])->name('reportes.index');
         Route::get('reportes/pdf', [ReporteGlobalController::class, 'exportarPdf'])->name('reportes.pdf');
         Route::get('reportes/csv', [ReporteGlobalController::class, 'exportarCsv'])->name('reportes.csv');
+
+        // Auditoría del sistema (RF21)
+        Route::get('auditoria',     [AuditoriaController::class, 'index'])->name('auditoria.index');
+        Route::get('auditoria/pdf', [AuditoriaController::class, 'exportarPdf'])->name('auditoria.pdf');
+        Route::get('auditoria/csv', [AuditoriaController::class, 'exportarCsv'])->name('auditoria.csv');
     });
 });

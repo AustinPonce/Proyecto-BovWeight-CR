@@ -5,7 +5,9 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use App\Mail\LoginNotificationMail;
 use App\Mail\WelcomeMail;
+use App\Models\Auditoria;
 use App\Models\Usuario;
+use App\Services\AuditoriaService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -95,6 +97,15 @@ class AuthController extends Controller
         // 2) Creación. El cast 'hashed' del modelo se encarga del bcrypt automáticamente.
         $usuario = Usuario::create($datos);
 
+        // RF21 — Auditoría: registro de nuevo usuario.
+        AuditoriaService::registrar(
+            accion:       Auditoria::ACCION_REGISTRO,
+            modulo:       Auditoria::MODULO_AUTH,
+            descripcion:  "Nuevo usuario registrado: {$usuario->nombre} (cédula: {$usuario->cedula}, rol: {$usuario->id_tipo_usuario}).",
+            datosDespues: ['cedula' => $usuario->cedula, 'nombre' => $usuario->nombre, 'id_tipo_usuario' => $usuario->id_tipo_usuario],
+            cedula:       $usuario->cedula,
+        );
+
         // 3) Respuesta diferenciada por tipo de cliente.
         if ($request->expectsJson()) {
             // Móvil: devolvemos token Sanctum para llamadas autenticadas siguientes.
@@ -159,6 +170,14 @@ class AuthController extends Controller
             $usuario->tokens()->where('name', 'app-movil')->delete();
             $token = $usuario->createToken('app-movil')->plainTextToken;
 
+            // RF21 — Auditoría: login desde la app móvil.
+            AuditoriaService::registrar(
+                accion:      Auditoria::ACCION_LOGIN,
+                modulo:      Auditoria::MODULO_AUTH,
+                descripcion: "Login exitoso (API) para {$usuario->nombre} (cédula: {$usuario->cedula}).",
+                cedula:      $usuario->cedula,
+            );
+
             return response()->json([
                 'mensaje' => 'Login exitoso',
                 'usuario' => $usuario->load('tipoUsuario'),
@@ -191,6 +210,14 @@ class AuthController extends Controller
             fechaHora: now()->format('d/m/Y H:i:s'),
         ));
 
+        // RF21 — Auditoría: login web.
+        AuditoriaService::registrar(
+            accion:      Auditoria::ACCION_LOGIN,
+            modulo:      Auditoria::MODULO_AUTH,
+            descripcion: "Login exitoso (web) para {$usuario->nombre} (cédula: {$usuario->cedula}).",
+            cedula:      $usuario->cedula,
+        );
+
         return redirect()->intended(route('dashboard'));
     }
 
@@ -201,10 +228,31 @@ class AuthController extends Controller
     public function logout(Request $request): JsonResponse|RedirectResponse
     {
         if ($request->expectsJson()) {
+            $usuario = $request->user();
+
+            // RF21 — Auditoría: logout API.
+            AuditoriaService::registrar(
+                accion:      Auditoria::ACCION_LOGOUT,
+                modulo:      Auditoria::MODULO_AUTH,
+                descripcion: "Logout (API) para {$usuario->nombre} (cédula: {$usuario->cedula}).",
+                cedula:      $usuario->cedula,
+            );
+
             // Móvil: revocamos solo el token usado en esta llamada (no todos).
-            $request->user()->currentAccessToken()->delete();
+            $usuario->currentAccessToken()->delete();
 
             return response()->json(['mensaje' => 'Sesión cerrada']);
+        }
+
+        // RF21 — Auditoría: logout web.
+        $usuario = Auth::user();
+        if ($usuario) {
+            AuditoriaService::registrar(
+                accion:      Auditoria::ACCION_LOGOUT,
+                modulo:      Auditoria::MODULO_AUTH,
+                descripcion: "Logout (web) para {$usuario->nombre} (cédula: {$usuario->cedula}).",
+                cedula:      $usuario->cedula,
+            );
         }
 
         // Web: cerramos sesión e invalidamos cookies.
