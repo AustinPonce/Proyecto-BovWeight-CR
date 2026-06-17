@@ -129,7 +129,7 @@ class PesajeController extends Controller
         //    en ese caso borramos la imagen subida (no la queremos guardar) y devolvemos
         //    el error al usuario (requerimiento #2: solo bovinos).
         try {
-            $peso = $context->calcular($datosCalculo);
+            $pesoOriginal = $context->calcular($datosCalculo);
         } catch (NoBovinoDetectadoException $e) {
             if ($pathImagen) {
                 Storage::disk('public')->delete($pathImagen);
@@ -140,22 +140,36 @@ class PesajeController extends Controller
                 ->withErrors(['imagen' => $e->mensajeUsuario]);
         }
 
-        // 6) Crear el Pesaje. Los Observers se disparan automáticamente acá:
-        //    - AuditoriaPesajeObserver  → log de auditoría
+        // 6) RF13 — Factor de corrección por raza.
+        //    Cargamos el animal con su raza para leer el factor_correccion.
+        $animal        = Animal::with('raza')->whereKey($datos['arete'])->first();
+        $factorRaza    = (float) ($animal->raza->factor_correccion ?? 1.0);
+        $pesoCorregido = round($pesoOriginal * $factorRaza, 2);
+        $pesoFinal     = $pesoCorregido; // el campo `peso` siempre guarda el valor corregido
+
+        // 7) Crear el Pesaje. Los Observers se disparan automáticamente acá:
+        //    - AuditoriaPesajeObserver  → log de auditoría + BD
         //    - CrearNotificacionObserver → notificación si hay recordatorio
         //    - VerificarPesoObserver    → alerta sanitaria si peso < 100
         Pesaje::create([
             'fecha'          => Carbon::now(),
-            'peso'           => $peso,
+            'peso'           => $pesoFinal,
+            'peso_original'  => round($pesoOriginal, 2),
+            'factor_raza'    => $factorRaza,
+            'peso_corregido' => $pesoCorregido,
             'imagen'         => $pathImagen,
             'sincronizado'   => 1,
             'arete'          => $datos['arete'],
             'id_tipo_pesaje' => $this->resolverTipoPesajeId($datos['tipo']),
         ]);
 
+        $msgFactor = $factorRaza != 1.0
+            ? " (original: {$pesoOriginal} kg × factor {$factorRaza} raza)"
+            : '';
+
         return redirect()
             ->route('animales.show', $datos['arete'])
-            ->with('exito', "Pesaje registrado: {$peso} kg.");
+            ->with('exito', "Pesaje registrado: {$pesoFinal} kg.{$msgFactor}");
     }
 
     // ==================================================================

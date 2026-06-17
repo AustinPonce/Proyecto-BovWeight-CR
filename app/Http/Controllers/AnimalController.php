@@ -3,11 +3,13 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\AnimalRequest;
+use App\Models\Auditoria;
 use App\Models\Animal;
 use App\Models\Estado;
 use App\Models\Finca;
 use App\Models\Raza;
 use App\Models\Sexo;
+use App\Services\AuditoriaService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -97,7 +99,15 @@ class AnimalController extends Controller
         // finca que no es del usuario (a menos que sea admin).
         $this->validarFincaPermitida((int) $datos['id_finca']);
 
-        Animal::create($datos);
+        $animal = Animal::create($datos);
+
+        // RF21 — Auditoría.
+        AuditoriaService::registrar(
+            accion:       Auditoria::ACCION_CREAR,
+            modulo:       Auditoria::MODULO_ANIMALES,
+            descripcion:  "Animal '{$animal->arete}' ({$animal->nombre}) creado en finca ID {$animal->id_finca}.",
+            datosDespues: $animal->toArray(),
+        );
 
         return redirect()
             ->route('animales.index', ['finca' => $datos['id_finca']])
@@ -145,7 +155,17 @@ class AnimalController extends Controller
         // Quitamos arete del payload — la PK no se cambia al editar.
         unset($datos['arete']);
 
+        $original = $animal->toArray();
         $animal->update($datos);
+
+        // RF21 — Auditoría.
+        AuditoriaService::registrar(
+            accion:       Auditoria::ACCION_ACTUALIZAR,
+            modulo:       Auditoria::MODULO_ANIMALES,
+            descripcion:  "Animal '{$animal->arete}' actualizado.",
+            datosAntes:   $original,
+            datosDespues: $animal->toArray(),
+        );
 
         return redirect()
             ->route('animales.index', ['finca' => $animal->id_finca])
@@ -159,8 +179,17 @@ class AnimalController extends Controller
     {
         $this->autorizarEdicion($animal);
 
-        $idFinca = $animal->id_finca;
+        $idFinca  = $animal->id_finca;
+        $snapshot = $animal->toArray();
         $animal->delete();
+
+        // RF21 — Auditoría.
+        AuditoriaService::registrar(
+            accion:      Auditoria::ACCION_ELIMINAR,
+            modulo:      Auditoria::MODULO_ANIMALES,
+            descripcion: "Animal '{$snapshot['arete']}' eliminado.",
+            datosAntes:  $snapshot,
+        );
 
         return redirect()
             ->route('animales.index', ['finca' => $idFinca])

@@ -3,7 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\Animal;
+use App\Models\Auditoria;
 use App\Models\Transaccion;
+use App\Services\AuditoriaService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
@@ -68,7 +70,15 @@ class TransaccionController extends Controller
         $datos['fecha']        = Carbon::now();
         $datos['cedula_usuario'] = $usuario->cedula;
 
-        Transaccion::create($datos);
+        $transaccion = Transaccion::create($datos);
+
+        // RF21 — Auditoría.
+        AuditoriaService::registrar(
+            accion:       Auditoria::ACCION_CREAR,
+            modulo:       Auditoria::MODULO_TRANSACCIONES,
+            descripcion:  "Transacción de '{$datos['tipo']}' registrada para arete '{$datos['arete']}'. Contraparte: '{$datos['nombre_contraparte']}'. Monto: \${$transaccion->monto_total}.",
+            datosDespues: $transaccion->toArray(),
+        );
 
         return redirect()
             ->route('transacciones.index')

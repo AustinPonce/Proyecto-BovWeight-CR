@@ -82,7 +82,7 @@ class PesajeController extends Controller
 
         // Si ML detecta que NO es una vaca: borrar imagen y devolver 422.
         try {
-            $peso = $context->calcular($datosCalculo);
+            $pesoOriginal = $context->calcular($datosCalculo);
         } catch (NoBovinoDetectadoException $e) {
             if ($pathImagen) {
                 Storage::disk('public')->delete($pathImagen);
@@ -93,9 +93,17 @@ class PesajeController extends Controller
             ], 422);
         }
 
+        // RF13 — Factor de corrección por raza.
+        $animal        = Animal::with('raza')->whereKey($datos['arete'])->first();
+        $factorRaza    = (float) ($animal->raza->factor_correccion ?? 1.0);
+        $pesoCorregido = round($pesoOriginal * $factorRaza, 2);
+
         $pesaje = Pesaje::create([
             'fecha'          => Carbon::now(),
-            'peso'           => $peso,
+            'peso'           => $pesoCorregido,
+            'peso_original'  => round($pesoOriginal, 2),
+            'factor_raza'    => $factorRaza,
+            'peso_corregido' => $pesoCorregido,
             'imagen'         => $pathImagen,
             'sincronizado'   => 1,
             'arete'          => $datos['arete'],
