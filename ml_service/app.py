@@ -29,14 +29,21 @@ from ultralytics import YOLO
 # Configuración
 # --------------------------------------------------------------------------- #
 
-# COCO class id 19 = "cow". Otros bovinos relevantes que YOLO también detecta:
-#   17 = "horse", 18 = "sheep", 20 = "elephant".
-# Para BovWeight nos quedamos solo con "cow" (vaca/toro).
+# COCO class id 19 = "cow". Es la ÚNICA clase aceptada para estimación
+# de peso. Cualquier otra (persona, perro, caballo, oveja, etc.) se rechaza
+# con error 422 — el sistema NO inventa un peso para no-bovinos
+# (requerimiento académico #2, prioridad alta).
 CLASS_ID_COW = 19
 
-# Umbral mínimo de confianza del detector. Si la confianza está por debajo,
-# rechazamos la imagen para evitar dar pesos sin sentido.
-CONFIDENCE_THRESHOLD = 0.35
+# Umbral mínimo de confianza para considerar válida la detección de una vaca.
+# Subido a 0.50 para evitar falsos positivos. Si YOLO no está al menos 50%
+# seguro de que es vaca, rechazamos.
+CONFIDENCE_THRESHOLD = 0.50
+
+# Umbral por encima del cual una detección no-bovina se considera "dominante".
+# Sirve para diagnosticar al usuario qué animal sí se detectó (ej.
+# "detectamos un perro con 89% de confianza, no una vaca").
+NON_COW_DOMINANT_THRESHOLD = 0.50
 
 # Heurística de peso a partir del bounding box.
 # Asumimos foto típica de campo: vaca de costado, cuerpo completo en el frame.
@@ -116,24 +123,44 @@ def estimar():
     if boxes is None or len(boxes) == 0:
         return _respuesta_sin_deteccion()
 
-    # Filtramos solo las detecciones que sean "cow" (class id 19).
+    # Convertimos las detecciones a lista de tuplas para analizar.
+    todas = list(zip(
+        boxes.xyxy.tolist(),
+        boxes.conf.tolist(),
+        boxes.cls.tolist(),
+    ))
+
+    # Filtramos detecciones de "cow" con confianza suficiente.
     cows = [
         (xyxy, float(conf))
-        for xyxy, conf, cls in zip(
-            boxes.xyxy.tolist(),
-            boxes.conf.tolist(),
-            boxes.cls.tolist(),
-        )
-        if int(cls) == CLASS_ID_COW
+        for xyxy, conf, cls in todas
+        if int(cls) == CLASS_ID_COW and float(conf) >= CONFIDENCE_THRESHOLD
     ]
 
+    # Si NO hay vaca, intentamos diagnosticar qué SÍ se detectó para dar
+    # un mensaje útil al usuario (ej. "se detectó un caballo, no una vaca").
     if not cows:
-        return _respuesta_sin_deteccion()
+        otras = [
+            (modelo.names[int(cls)], float(conf))
+            for _, conf, cls in todas
+            if int(cls) != CLASS_ID_COW and float(conf) >= NON_COW_DOMINANT_THRESHOLD
+        ]
+        otras.sort(key=lambda x: x[1], reverse=True)
+        deteccion_dominante = otras[0] if otras else None
+        return _respuesta_sin_deteccion(deteccion_dominante)
 
     # Si hay varias vacas en la foto, nos quedamos con la de mayor área (la más
     # cercana a la cámara — la "principal").
     cows.sort(key=lambda item: _area_bbox(item[0]), reverse=True)
     bbox, confianza = cows[0]
+
+    # Doble-chequeo: el bbox tiene que ocupar al menos 3% de la imagen.
+    # Vacas muy pequeñas suelen ser falsos positivos lejanos o de fondo.
+    if _area_bbox(bbox) / max(area_imagen, 1.0) < 0.03:
+        return jsonify({
+            "error": "La vaca detectada está demasiado lejos en la foto.",
+            "sugerencia": "Acercate más al animal para una mejor estimación."
+        }), 422
 
     # ---- Estimación de peso por área del bbox ---- #
     peso = _estimar_peso_desde_bbox(bbox, area_imagen)
@@ -201,12 +228,41 @@ def _estimar_peso_desde_bbox(bbox, area_imagen):
     return PESO_MIN_KG  # fallback defensivo
 
 
-def _respuesta_sin_deteccion():
-    """Respuesta uniforme cuando no se detecta ninguna vaca en la imagen."""
-    return jsonify({
+def _respuesta_sin_deteccion(deteccion_dominante=None):
+    """
+    Respuesta uniforme cuando no se detecta ninguna vaca en la imagen.
+
+    Si YOLO detectó OTRO animal/objeto con alta confianza, lo reportamos en el
+    mensaje para que el usuario entienda por qué se rechazó la foto:
+    "detectamos un caballo (87%) en lugar de una vaca".
+    """
+    payload = {
         "error": "No se detectó un animal bovino en la imagen.",
-        "sugerencia": "Tomá la foto de cuerpo completo y de costado, con buena luz."
-    }), 422
+        "sugerencia": "Tomá la foto de cuerpo completo y de costado, con buena luz.",
+    }
+    if deteccion_dominante:
+        clase, conf = deteccion_dominante
+        payload["detectado_en_su_lugar"] = {
+            "clase": clase,
+            "confianza": round(conf, 3),
+        }
+        # Traducción amigable de los nombres COCO al español para el usuario.
+        traducciones = {
+            "person": "una persona",
+            "horse": "un caballo",
+            "sheep": "una oveja",
+            "dog": "un perro",
+            "cat": "un gato",
+            "bird": "un ave",
+            "bear": "un oso",
+            "elephant": "un elefante",
+        }
+        nombre_es = traducciones.get(clase, f"un/a {clase}")
+        payload["error"] = (
+            f"No se detectó una vaca: se detectó {nombre_es} "
+            f"con {int(conf * 100)}% de confianza."
+        )
+    return jsonify(payload), 422
 
 
 # --------------------------------------------------------------------------- #

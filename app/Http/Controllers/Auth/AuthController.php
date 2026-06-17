@@ -9,6 +9,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Rules\Password;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
@@ -60,12 +61,23 @@ class AuthController extends Controller
     public function registrar(Request $request): JsonResponse|RedirectResponse
     {
         // 1) Validación de entrada. Las reglas reflejan los constraints del esquema:
-        //    cedula único, máx 20 chars; correo único, máx 100; contraseña mínima 8.
+        //    cedula único, máx 20 chars; correo único, máx 100.
+        //
+        //    Contraseña segura (requerimiento #14):
+        //      - mínimo 8 caracteres
+        //      - al menos una mayúscula
+        //      - al menos una minúscula
+        //      - al menos un símbolo
+        //    La regla Password::min(8)->mixedCase()->symbols() encapsula esto.
         $datos = $request->validate([
             'cedula'          => ['required', 'string', 'max:20', 'unique:Usuario,cedula'],
             'nombre'          => ['required', 'string', 'max:100'],
             'correo'          => ['required', 'email', 'max:100', 'unique:Usuario,correo'],
-            'contrasena'      => ['required', 'string', 'min:8', 'confirmed'],
+            'contrasena'      => [
+                'required',
+                'confirmed',
+                Password::min(8)->mixedCase()->symbols(),
+            ],
             'id_tipo_usuario' => [
                 'required',
                 'integer',

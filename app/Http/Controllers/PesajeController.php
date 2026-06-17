@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Contracts\ICalculadorPeso;
+use App\Exceptions\NoBovinoDetectadoException;
 use App\Http\Requests\PesajeRequest;
 use App\Models\Animal;
 use App\Models\Pesaje;
@@ -123,8 +124,21 @@ class PesajeController extends Controller
                 'imagen' => $pathImagen, // se manda al microservicio Python
             ];
 
-        // 5) Calcular el peso. Si el ML está caído, la strategy hace fallback.
-        $peso = $context->calcular($datosCalculo);
+        // 5) Calcular el peso. Si el ML está caído, la strategy hace fallback al mock.
+        //    Si el ML respondió pero NO detectó una vaca, levanta NoBovinoDetectadoException;
+        //    en ese caso borramos la imagen subida (no la queremos guardar) y devolvemos
+        //    el error al usuario (requerimiento #2: solo bovinos).
+        try {
+            $peso = $context->calcular($datosCalculo);
+        } catch (NoBovinoDetectadoException $e) {
+            if ($pathImagen) {
+                Storage::disk('public')->delete($pathImagen);
+            }
+            return redirect()
+                ->route('pesajes.create', ['animal' => $datos['arete']])
+                ->withInput()
+                ->withErrors(['imagen' => $e->mensajeUsuario]);
+        }
 
         // 6) Crear el Pesaje. Los Observers se disparan automáticamente acá:
         //    - AuditoriaPesajeObserver  → log de auditoría

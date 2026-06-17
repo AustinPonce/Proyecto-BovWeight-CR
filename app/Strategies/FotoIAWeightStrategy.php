@@ -3,6 +3,7 @@
 namespace App\Strategies;
 
 use App\Contracts\ICalculadorPeso;
+use App\Exceptions\NoBovinoDetectadoException;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
@@ -68,7 +69,31 @@ class FotoIAWeightStrategy implements ICalculadorPeso
             return $this->mock();
         }
 
-        // El microservicio responde 200 si detectó vaca, 422 si no.
+        // ────────────────────────────────────────────────────────────────────
+        // Diferenciamos los tipos de error del ML:
+        //
+        //   422 → el modelo CORRIÓ pero NO detectó una vaca (puede ser que
+        //         haya detectado otra cosa, persona, perro, etc.). En este
+        //         caso NO mockeamos: levantamos excepción para que el
+        //         controller rechace el pesaje y muestre el mensaje al
+        //         usuario (req. #2: solo se acepta ganado bovino).
+        //
+        //   otros → fallo del servicio (5xx, timeout, etc.). En este caso
+        //           SÍ mockeamos para no bloquear al equipo si el ML está
+        //           caído durante el desarrollo.
+        // ────────────────────────────────────────────────────────────────────
+        if ($response->status() === 422) {
+            $mensaje = $response->json('error')
+                ?? 'La imagen no contiene un animal bovino reconocible.';
+
+            Log::info("FotoIAWeightStrategy: ML rechazó la foto: {$mensaje}");
+
+            throw new NoBovinoDetectadoException(
+                $mensaje,
+                $response->json('detectado_en_su_lugar', [])
+            );
+        }
+
         if (! $response->successful()) {
             $mensaje = $response->json('error', 'desconocido');
             Log::warning("FotoIAWeightStrategy: ml_service respondió {$response->status()}: {$mensaje}; usando mock.");
