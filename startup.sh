@@ -1,32 +1,23 @@
 #!/bin/bash
 
 # Apuntar Apache al directorio public/ de Laravel
-cat > /etc/apache2/sites-available/000-default.conf << 'EOF'
-<VirtualHost *:8080>
-    DocumentRoot /home/site/wwwroot/public
-    <Directory /home/site/wwwroot/public>
-        Options Indexes FollowSymLinks
-        AllowOverride All
-        Require all granted
-    </Directory>
-    ErrorLog /home/LogFiles/apache_error.log
-    CustomLog /home/LogFiles/apache_access.log combined
-</VirtualHost>
-EOF
+sed -i 's|/home/site/wwwroot|/home/site/wwwroot/public|g' /etc/apache2/sites-enabled/000-default.conf
 
+# Habilitar mod_rewrite para .htaccess
 a2enmod rewrite
 
-cd /home/site/wwwroot
-
-# Escribir certificado Aiven si existe el secret
+# Escribir certificado Aiven si está disponible como variable de entorno
 if [ -n "$AIVEN_CA_CERT" ]; then
-    mkdir -p storage/certs
-    echo "$AIVEN_CA_CERT" > storage/certs/ca-certificate.pem
+    mkdir -p /home/site/wwwroot/storage/certs
+    echo "$AIVEN_CA_CERT" > /home/site/wwwroot/storage/certs/ca-certificate.pem
 fi
 
+# Comandos de Laravel
+cd /home/site/wwwroot
 php artisan migrate --force
 php artisan config:cache
 php artisan route:cache
 php artisan storage:link
 
-apachectl -D FOREGROUND
+# Reiniciar Apache con la nueva configuración
+apachectl restart
