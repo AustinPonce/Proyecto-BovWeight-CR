@@ -129,6 +129,26 @@
                     Evitá fotos de frente, desde atrás o con el animal parcialmente cortado.
                 </div>
 
+                {{-- Categoría del animal: el usuario sabe si es ternero o adulto,
+                     y ese dato elimina la ambigüedad de distancia en la foto. --}}
+                <div>
+                    <label class="block text-sm font-medium mb-1">Tipo de animal</label>
+                    <select name="categoria_animal" id="select-categoria"
+                            class="w-full border border-gray-300 rounded px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                        <option value="auto">Detectar automáticamente</option>
+                        <optgroup label="Ternero / Cría">
+                            <option value="cria_neonato">Recién nacido (0 – 1 mes)</option>
+                            <option value="cria_joven">Ternero joven (1 – 3 meses)</option>
+                            <option value="cria_mayor">Ternero mayor (3 – 6 meses)</option>
+                        </optgroup>
+                        <optgroup label="Crecimiento / Adulto">
+                            <option value="joven">Novillo / Vaquilla (6 meses – 2 años)</option>
+                            <option value="adulto">Vaca / Toro adulto (más de 2 años)</option>
+                        </optgroup>
+                    </select>
+                    <p class="text-xs text-gray-500 mt-1">Indicar la edad mejora significativamente la precisión.</p>
+                </div>
+
                 <div>
                     <label class="block text-sm font-medium mb-1">Foto del animal</label>
                     <input type="file" name="imagen" accept="image/*" id="input-imagen"

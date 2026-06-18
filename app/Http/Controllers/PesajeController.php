@@ -107,6 +107,7 @@ class PesajeController extends Controller
             'altura'             => ['required_if:tipo,manual', 'nullable', 'numeric', 'min:30', 'max:200'],
             'perimetro_toracico' => ['required_if:tipo,manual', 'nullable', 'numeric', 'min:30', 'max:300'],
             'imagen'             => ['required_if:tipo,foto', 'nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
+            'categoria_animal'   => ['nullable', Rule::in(['auto', 'cria', 'cria_neonato', 'cria_joven', 'cria_mayor', 'joven', 'adulto'])],
         ]);
 
         $this->autorizarAnimal($request, $datos['arete']);
@@ -127,7 +128,10 @@ class PesajeController extends Controller
                 'altura'             => (float) $datos['altura'],
                 'perimetro_toracico' => (float) $datos['perimetro_toracico'],
             ]
-            : ['imagen' => $pathImagen];
+            : [
+                'imagen'    => $pathImagen,
+                'categoria' => $datos['categoria_animal'] ?? 'auto',
+            ];
 
         try {
             $pesoOriginal = $context->calcular($datosCalculo);

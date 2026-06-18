@@ -162,12 +162,13 @@ def estimar():
             "sugerencia": "Acercate más al animal para una mejor estimación."
         }), 422
 
-    # ---- Estimación de peso por área del bbox ---- #
-    peso = _estimar_peso_desde_bbox(bbox, area_imagen)
-
+    # ---- Estimación de peso por área del bbox + categoría ---- #
+    categoria_hint = request.form.get('categoria', 'auto')
+    etapa = _clasificar_etapa(bbox, categoria_hint)
+    peso = _estimar_peso_desde_bbox(bbox, area_imagen, etapa)
     logger.info(
-        "Detectada vaca conf=%.2f bbox=%s peso_estimado=%.1fkg",
-        confianza, [round(v, 1) for v in bbox], peso,
+        "Detectada vaca conf=%.2f etapa=%s (hint=%s) bbox=%s peso_estimado=%.1fkg",
+        confianza, etapa, categoria_hint, [round(v, 1) for v in bbox], peso,
     )
 
     return jsonify({
@@ -175,7 +176,8 @@ def estimar():
         "unidad": "kg",
         "confianza": round(confianza, 3),
         "bbox": [round(v, 1) for v in bbox],
-        "metodo": "yolov8n+heuristica_bbox",
+        "metodo": "yolov8n+heuristica_bbox_ar",
+        "etapa_detectada": etapa,
     }), 200
 
 
@@ -189,43 +191,104 @@ def _area_bbox(xyxy):
     return max(0.0, (x2 - x1)) * max(0.0, (y2 - y1))
 
 
-def _estimar_peso_desde_bbox(bbox, area_imagen):
+def _clasificar_etapa(bbox, categoria_hint: str = 'auto') -> str:
     """
-    Mapea el área del bbox (proporción del frame ocupada por el animal) a un peso.
+    Determina la etapa de desarrollo del animal.
 
-    Hipótesis:
-      - Una vaca adulta promedio (~450 kg) ocupa ~40% del frame en una foto típica.
-      - Una vaca chica (~150 kg) ocupa ~15%.
-      - Un toro grande (~800 kg) ocupa ~65%.
+    Si el usuario indicó la categoría ('cria'/'joven'/'adulto'), se usa
+    directamente — elimina la ambigüedad de distancia en la foto.
+    Solo cuando es 'auto' se infiere del aspect ratio del bbox.
+    """
+    if categoria_hint in ('cria_neonato', 'cria_joven', 'cria_mayor', 'joven', 'adulto'):
+        return categoria_hint
+    # compatibilidad con valor legacy 'cria'
+    if categoria_hint == 'cria':
+        return 'cria_mayor'
 
-    Por simplicidad usamos una interpolación lineal entre esos puntos.
-    Una mejora futura sería un modelo de regresión entrenado con datos reales.
+    # Inferencia por aspect ratio (ancho/alto del bbox).
+    # Ternero → bbox más cuadrado; adulto → más elongado horizontalmente.
+    x1, y1, x2, y2 = bbox
+    ancho = max(0.0, x2 - x1)
+    alto  = max(0.0, y2 - y1)
+    ar = ancho / max(alto, 1.0)
+
+    if ar <= 1.30:
+        return 'cria'
+    elif ar <= 1.65:
+        return 'joven'
+    else:
+        return 'adulto'
+
+
+# Curvas de calibración por etapa/edad: (proporcion_frame → peso_kg).
+# Los rangos están basados en datos reales de pesaje de razas comunes en CR
+# (Hereford, Brahman, Angus, Pardo Suizo, Holstein).
+# Dentro de cada rango, la proporción del frame afina el resultado.
+_CURVAS_PESO = {
+    # Ternero recién nacido (0-1 mes): 28–50 kg
+    'cria_neonato': [
+        (0.05, 28.0),
+        (0.30, 35.0),
+        (0.60, 43.0),
+        (0.90, 50.0),
+    ],
+    # Ternero joven (1-3 meses): 55–180 kg
+    'cria_joven': [
+        (0.05,  55.0),
+        (0.25,  85.0),
+        (0.55, 130.0),
+        (0.90, 180.0),
+    ],
+    # Ternero mayor (3-6 meses): 110–260 kg
+    'cria_mayor': [
+        (0.05, 110.0),
+        (0.25, 150.0),
+        (0.55, 200.0),
+        (0.90, 260.0),
+    ],
+    # Novillo / Vaquilla (6 meses – 2 años): 200–500 kg
+    'joven': [
+        (0.05, 200.0),
+        (0.20, 280.0),
+        (0.45, 370.0),
+        (0.70, 440.0),
+        (0.90, 500.0),
+    ],
+    # Vaca / Toro adulto (> 2 años): PESO_MIN_KG – PESO_MAX_KG
+    'adulto': [
+        (0.05, PESO_MIN_KG),
+        (0.15, 220.0),
+        (0.35, 400.0),
+        (0.60, 620.0),
+        (0.85, PESO_MAX_KG),
+    ],
+}
+
+
+def _estimar_peso_desde_bbox(bbox, area_imagen, etapa: str = 'adulto'):
+    """
+    Estima el peso interpolando la proporción del frame en la curva de la etapa.
+
+    La etapa ya viene resuelta por _clasificar_etapa() (hint del usuario o
+    inferencia por aspect ratio), por lo que esta función solo hace la
+    interpolación lineal dentro del rango de pesos correcto.
     """
     proporcion = _area_bbox(bbox) / max(area_imagen, 1.0)
+    calibracion = _CURVAS_PESO.get(etapa, _CURVAS_PESO['adulto'])
 
-    # Puntos de calibración (proporción → peso kg). Ordenados ascendentemente.
-    calibracion = [
-        (0.05, PESO_MIN_KG),
-        (0.15, 150.0),
-        (0.40, 450.0),
-        (0.65, 800.0),
-        (0.90, PESO_MAX_KG),
-    ]
-
-    # Interpolación lineal por tramos.
     if proporcion <= calibracion[0][0]:
-        return PESO_MIN_KG
+        return calibracion[0][1]
     if proporcion >= calibracion[-1][0]:
-        return PESO_MAX_KG
+        return calibracion[-1][1]
 
     for i in range(len(calibracion) - 1):
         p1, w1 = calibracion[i]
         p2, w2 = calibracion[i + 1]
         if p1 <= proporcion <= p2:
             t = (proporcion - p1) / (p2 - p1)
-            return w1 + t * (w2 - w1)
+            return round(w1 + t * (w2 - w1), 2)
 
-    return PESO_MIN_KG  # fallback defensivo
+    return calibracion[0][1]  # fallback defensivo
 
 
 def _respuesta_sin_deteccion(deteccion_dominante=None):

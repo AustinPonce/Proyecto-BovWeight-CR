@@ -60,10 +60,12 @@ class FotoIAWeightStrategy implements ICalculadorPeso
         $url = rtrim(config('services.ml.url', env('ML_SERVICE_URL', 'http://127.0.0.1:5000')), '/');
         $timeout = (int) env('ML_SERVICE_TIMEOUT', 20); // RNF01: máximo 20 s
 
+        $categoria = $datos['categoria'] ?? 'auto';
+
         try {
             $response = Http::timeout($timeout)
                 ->attach('imagen', file_get_contents($pathAbsoluto), basename($pathAbsoluto))
-                ->post($url . '/estimar');
+                ->post($url . '/estimar', ['categoria' => $categoria]);
         } catch (\Throwable $e) {
             Log::warning("FotoIAWeightStrategy: ml_service inaccesible ({$e->getMessage()}); usando mock.");
             return $this->mock();

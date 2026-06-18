@@ -52,4 +52,3 @@ class UsuariosSeeder extends Seeder
         ]);
     }
 }
-n
