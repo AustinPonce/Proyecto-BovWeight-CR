@@ -17,6 +17,9 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        // CORS: permite peticiones desde la app móvil Capacitor/WebView
+        $middleware->prepend(\Illuminate\Http\Middleware\HandleCors::class);
+
         // Alias 'rol' para usar en rutas:
         //   ->middleware('rol:admin')
         //   ->middleware('rol:ganadero,veterinario')
