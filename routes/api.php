@@ -36,8 +36,9 @@ use Illuminate\Support\Facades\Route;
 // ----------------------------------------------------------------------
 // Públicas (sin token)
 // ----------------------------------------------------------------------
-Route::post('/registro', [AuthController::class, 'registrar']);
-Route::post('/login',    [AuthController::class, 'login']);
+Route::post('/registro',         [AuthController::class, 'registrar']);
+Route::post('/login',            [AuthController::class, 'login']);
+Route::post('/forgot-password',  [AuthController::class, 'forgotPassword']);
 
 // ----------------------------------------------------------------------
 // Protegidas (requieren header `Authorization: Bearer {token}`)
@@ -118,6 +119,10 @@ Route::middleware('auth:sanctum')->group(function () {
         ->name('api.usuarios.index')->middleware('rol:admin');
     Route::post('usuarios', [UsuarioController::class, 'store'])
         ->name('api.usuarios.store')->middleware('rol:admin');
+    Route::put('usuarios/{usuario}', [UsuarioController::class, 'update'])
+        ->name('api.usuarios.update')->middleware('rol:admin');
+    Route::delete('usuarios/{usuario}', [UsuarioController::class, 'destroy'])
+        ->name('api.usuarios.destroy')->middleware('rol:admin');
     Route::patch('usuarios/{usuario}/toggle-activo', [UsuarioController::class, 'toggleActivo'])
         ->name('api.usuarios.toggle-activo')->middleware('rol:admin');
 

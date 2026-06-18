@@ -4,15 +4,19 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Mail\LoginNotificationMail;
+use App\Mail\PasswordResetMail;
 use App\Mail\WelcomeMail;
 use App\Models\Auditoria;
 use App\Models\Usuario;
 use App\Services\AuditoriaService;
+use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Password;
 use Illuminate\Validation\ValidationException;
@@ -38,6 +42,33 @@ use Illuminate\View\View;
  */
 class AuthController extends Controller
 {
+    // ==================================================================
+    // FORGOT PASSWORD (API)
+    // ==================================================================
+
+    public function forgotPassword(Request $request): JsonResponse
+    {
+        $request->validate(['email' => ['required', 'email']]);
+
+        $usuario = Usuario::where('correo', $request->input('email'))->first();
+
+        // Siempre respondemos con el mismo mensaje para no revelar si el correo existe.
+        if ($usuario) {
+            $token = Str::random(64);
+
+            DB::table('password_reset_tokens')->updateOrInsert(
+                ['email' => $usuario->correo],
+                ['token' => hash('sha256', $token), 'created_at' => Carbon::now()]
+            );
+
+            Mail::to($usuario->correo)->send(new PasswordResetMail($usuario, $token));
+        }
+
+        return response()->json([
+            'message' => 'Si ese correo está registrado, recibirás un enlace para restablecer tu contraseña.',
+        ]);
+    }
+
     // ==================================================================
     // VISTAS (solo web)
     // ==================================================================
