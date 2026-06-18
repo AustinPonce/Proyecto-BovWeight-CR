@@ -18,6 +18,9 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        // Confiar en el proxy de Azure que termina SSL
+        $middleware->trustProxies(at: '*');
+
         // CORS: permite peticiones desde la app móvil Capacitor/WebView
         $middleware->prepend(HandleCors::class);
 
