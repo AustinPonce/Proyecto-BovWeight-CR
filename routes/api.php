@@ -1,7 +1,11 @@
 <?php
 
 use App\Http\Controllers\Api\AnimalController;
+use App\Http\Controllers\Api\AuditoriaController;
 use App\Http\Controllers\Api\ComentarioController;
+use App\Http\Controllers\Api\EstadoController;
+use App\Http\Controllers\Api\NotificacionController;
+use App\Http\Controllers\Api\RecordatorioController;
 use App\Http\Controllers\Api\DosisController;
 use App\Http\Controllers\Api\FincaController;
 use App\Http\Controllers\Api\MedicamentoController;
@@ -64,11 +68,15 @@ Route::middleware('auth:sanctum')->group(function () {
         ->names('api.pesajes')
         ->middleware('rol:admin,ganadero,veterinario');
 
-    // ---- Comentarios veterinarios ----
+    // ---- Comentarios veterinarios + Recordatorios ----
     Route::prefix('animales/{animal}')->group(function () {
         Route::get('comentarios',              [ComentarioController::class, 'index'])->name('api.comentarios.index');
         Route::post('comentarios',             [ComentarioController::class, 'store'])->name('api.comentarios.store');
         Route::delete('comentarios/{comentario}', [ComentarioController::class, 'destroy'])->name('api.comentarios.destroy');
+
+        Route::get('recordatorios',                    [RecordatorioController::class, 'index'])->name('api.recordatorios.index');
+        Route::post('recordatorios',                   [RecordatorioController::class, 'store'])->name('api.recordatorios.store');
+        Route::delete('recordatorios/{recordatorio}',  [RecordatorioController::class, 'destroy'])->name('api.recordatorios.destroy');
     });
 
     // ---- Veterinarios de una finca ----
@@ -112,5 +120,18 @@ Route::middleware('auth:sanctum')->group(function () {
         ->name('api.usuarios.store')->middleware('rol:admin');
     Route::patch('usuarios/{usuario}/toggle-activo', [UsuarioController::class, 'toggleActivo'])
         ->name('api.usuarios.toggle-activo')->middleware('rol:admin');
+
+    // ---- Estados de animal ----
+    Route::get('estados', [EstadoController::class, 'index'])->name('api.estados.index');
+
+    // ---- Notificaciones del usuario autenticado ----
+    Route::get('notificaciones', [NotificacionController::class, 'index'])->name('api.notificaciones.index');
+
+    // ---- Todos los comentarios veterinarios visibles para el usuario ----
+    Route::get('comentarios', [ComentarioController::class, 'indexGlobal'])->name('api.comentarios.global');
+
+    // ---- Auditoría (solo admin) ----
+    Route::get('admin/auditoria', [AuditoriaController::class, 'index'])
+        ->name('api.admin.auditoria.index')->middleware('rol:admin');
 
 });

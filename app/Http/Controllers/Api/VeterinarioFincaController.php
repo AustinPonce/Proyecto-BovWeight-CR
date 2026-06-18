@@ -37,7 +37,7 @@ class VeterinarioFincaController extends Controller
     {
         $this->autorizarAcceso($request->user(), $finca);
 
-        $vets = $finca->veterinarios()->get(['cedula', 'nombre', 'correo']);
+        $vets = $finca->veterinarios()->get(['Usuario.cedula', 'Usuario.nombre', 'Usuario.correo']);
 
         return response()->json(['data' => $vets]);
     }

@@ -12,12 +12,41 @@ use Illuminate\Http\Request;
 /**
  * API REST de Comentarios Veterinarios (app móvil Ionic).
  *
- * GET    /api/animales/{animal}/comentarios  → index
- * POST   /api/animales/{animal}/comentarios  → store (solo veterinarios)
- * DELETE /api/animales/{animal}/comentarios/{comentario} → destroy
+ * GET    /api/comentarios                                → indexGlobal (todos los visibles)
+ * GET    /api/animales/{animal}/comentarios             → index (por animal)
+ * POST   /api/animales/{animal}/comentarios             → store (solo veterinarios)
+ * DELETE /api/animales/{animal}/comentarios/{comentario}→ destroy
  */
 class ComentarioController extends Controller
 {
+    /** Todos los comentarios de animales visibles para el usuario autenticado. */
+    public function indexGlobal(Request $request): JsonResponse
+    {
+        $aretesVisibles = Animal::visibleFor($request->user())->pluck('arete');
+
+        $comentarios = ComentarioVeterinario::with([
+                'animal:arete,nombre',
+                'veterinario:cedula,nombre',
+            ])
+            ->whereIn('arete', $aretesVisibles)
+            ->orderByDesc('fecha')
+            ->get()
+            ->map(fn ($c) => [
+                'id_comentario'      => $c->id_comentario,
+                'arete'              => $c->arete,
+                'comentario'         => $c->comentario,
+                'fecha'              => $c->fecha,
+                'cedula_veterinario' => $c->cedula_veterinario,
+                'veterinario'        => $c->veterinario?->nombre,
+                'animal'             => $c->animal ? [
+                    'arete'  => $c->animal->arete,
+                    'nombre' => $c->animal->nombre,
+                ] : null,
+            ]);
+
+        return response()->json(['data' => $comentarios]);
+    }
+
     public function index(Request $request, Animal $animal): JsonResponse
     {
         $this->autorizarVer($request->user(), $animal);

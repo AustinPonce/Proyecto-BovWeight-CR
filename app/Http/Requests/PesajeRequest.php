@@ -71,6 +71,10 @@ class PesajeRequest extends FormRequest
             $reglas['imagen'] = ['required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'];
         }
 
+        if ($this->input('tipo') === 'foto') {
+            $reglas['tipo_animal'] = ['nullable', 'string', 'in:auto,cria_neonato,cria_joven,cria_mayor,joven,adulto'];
+        }
+
         return $reglas;
     }
 

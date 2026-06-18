@@ -78,7 +78,10 @@ class PesajeController extends Controller
                 'altura'             => (float) $datos['altura'],
                 'perimetro_toracico' => (float) $datos['perimetro_toracico'],
             ]
-            : ['imagen' => $pathImagen];
+            : [
+                'imagen'    => $pathImagen,
+                'categoria' => $datos['tipo_animal'] ?? 'auto',
+            ];
 
         // Si ML detecta que NO es una vaca: borrar imagen y devolver 422.
         try {
