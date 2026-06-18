@@ -2,4 +2,4 @@ flask>=3.0.0
 ultralytics>=8.3.100
 pillow>=11.0.0
 numpy>=2.0.0
-# gunicorn no aplica en Windows (usar solo en producción Linux)
+gunicorn>=21.2.0
