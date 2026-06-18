@@ -1,23 +1,56 @@
 #!/bin/bash
 
-# Apuntar Apache al directorio public/ de Laravel
-sed -i 's|/home/site/wwwroot|/home/site/wwwroot/public|g' /etc/apache2/sites-enabled/000-default.conf
+# Configurar nginx para servir desde public/ de Laravel
+cat > /etc/nginx/sites-enabled/default << 'NGINXCONF'
+server {
+    listen 8080;
+    listen [::]:8080;
+    root /home/site/wwwroot/public;
+    index index.php index.html index.htm;
+    server_name example.com www.example.com;
+    port_in_redirect off;
 
-# Habilitar mod_rewrite para .htaccess
-a2enmod rewrite
+    location / {
+        try_files $uri $uri/ /index.php?$query_string;
+    }
 
-# Escribir certificado Aiven si está disponible como variable de entorno
-if [ -n "$AIVEN_CA_CERT" ]; then
-    mkdir -p /home/site/wwwroot/storage/certs
-    echo "$AIVEN_CA_CERT" > /home/site/wwwroot/storage/certs/ca-certificate.pem
-fi
+    error_page 500 502 503 504 /50x.html;
+    location = /50x.html {
+        root /html/;
+    }
+
+    location ~ /\.git {
+        deny all;
+        access_log off;
+        log_not_found off;
+    }
+
+    location ~* [^/]\.php(/|$) {
+        fastcgi_split_path_info ^(.+?\.[Pp][Hh][Pp])(|/.*)$;
+        fastcgi_pass 127.0.0.1:9000;
+        include fastcgi_params;
+        fastcgi_param HTTP_PROXY "";
+        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+        fastcgi_param PATH_INFO $fastcgi_path_info;
+        fastcgi_param QUERY_STRING $query_string;
+        fastcgi_intercept_errors on;
+        fastcgi_connect_timeout         300;
+        fastcgi_send_timeout           3600;
+        fastcgi_read_timeout           3600;
+        fastcgi_buffer_size 128k;
+        fastcgi_buffers 4 256k;
+        fastcgi_busy_buffers_size 256k;
+        fastcgi_temp_file_write_size 256k;
+    }
+}
+NGINXCONF
+
+# Reiniciar nginx
+service nginx restart
 
 # Comandos de Laravel
 cd /home/site/wwwroot
-php artisan migrate --force
-php artisan config:cache
-php artisan route:cache
-php artisan storage:link
-
-# Reiniciar Apache con la nueva configuración
-apachectl restart
+php artisan migrate --force 2>/dev/null || true
+php artisan config:cache 2>/dev/null || true
+php artisan route:cache 2>/dev/null || true
+php artisan storage:link 2>/dev/null || true
